@@ -63,7 +63,7 @@ ${ld}
     <nav aria-label="Main">
       <ul>${NAV.map((n) => `<li><a href="${n.href}">${n.label}</a></li>`).join("")}</ul>
     </nav>
-    <a class="btn btn-small" href="/app/">Open the app</a>
+    <a class="btn btn-small" href="/app">Open the app</a>
   </div>
 </header>
 <main id="main">
@@ -76,7 +76,7 @@ ${o.body}
       <p>Voice dictation for ultrasound reports. Made in India for USG clinics.</p>
     </div>
     <ul>
-      <li><a href="/app/">Web app</a></li>
+      <li><a href="/app">Web app</a></li>
       <li><a href="/#download">Windows app</a></li>
       <li><a href="/usg-report-format">USG report formats</a></li>
       <li><a href="/privacy">Privacy</a></li>

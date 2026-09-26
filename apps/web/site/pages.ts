@@ -62,7 +62,7 @@ function landing(): string {
       <h1>Dictate your USG reports instead of typing them.</h1>
       <p class="lede">Say the findings the way you would tell a colleague. USGScribe writes them into MS Word, or into its own report editor, with measurements formatted and your normal-study sentences one phrase away.</p>
       <div class="cta-row">
-        <a class="btn" href="/app/">Try it free in your browser</a>
+        <a class="btn" href="/app">Try it free in your browser</a>
         <a class="btn btn-quiet" href="#download">Get the Word app for Windows</a>
       </div>
       <p class="fine">Free during early access. No sign-up. Works in Chrome and Edge.</p>
@@ -118,7 +118,7 @@ function landing(): string {
         <li>Select a blank and speak the value to fill it in</li>
         <li>Patient name, age and referring doctor can be dictated too</li>
       </ul>
-      <p><a class="text-link" href="/app/">Open the report editor</a></p>
+      <p><a class="text-link" href="/app">Open the report editor</a></p>
     </div>
     <div class="formats-list">
       <h3>Formats included</h3>
@@ -159,7 +159,7 @@ function landing(): string {
       <p class="section-lede">Try it in the browser first. When you are happy, install the Windows app to dictate into Word.</p>
     </div>
     <div class="download-actions">
-      <a class="btn" href="/app/">Open the web app</a>
+      <a class="btn" href="/app">Open the web app</a>
       <a class="btn btn-quiet" href="${WINDOWS_DOWNLOAD}">Download for Windows</a>
       <p class="fine">Windows 10 and 11. Windows may show a “Windows protected your PC” notice while the app is new: choose “More info”, then “Run anyway”.</p>
     </div>
@@ -264,7 +264,7 @@ function formatPage(slug: string): string {
         ${html}
       </div>
       <div class="cta-row">
-        <a class="btn" href="/app/#/new/${t.id}">Dictate this report in USGScribe</a>
+        <a class="btn" href="/app#/new/${t.id}">Dictate this report in USGScribe</a>
         <button class="btn btn-quiet" type="button" data-copy="#format-text">Copy the format</button>
       </div>
       <p class="fine">This is a normal-study starting point. Edit it to match your findings and your clinic’s style, and always review before signing.</p>
@@ -345,7 +345,7 @@ ${paths.map((p) => `  <url><loc>${siteUrl()}${p === "/" ? "/" : p}</loc><lastmod
 export function robots(): string {
   return `User-agent: *
 Allow: /
-Disallow: /app/
+Disallow: /app
 Disallow: /api/
 
 Sitemap: ${siteUrl()}/sitemap.xml
