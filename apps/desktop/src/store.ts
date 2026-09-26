@@ -1,5 +1,5 @@
 import { app } from "electron";
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { DEFAULT_MACROS, type Macro } from "@medical-dict/core";
 
@@ -17,7 +17,8 @@ export interface DesktopSettings {
 
 export const DEFAULTS: DesktopSettings = {
   groqApiKey: "",
-  serverUrl: "",
+  // Works out of the box through the USGScribe website; a Groq key overrides it.
+  serverUrl: "https://usgscribe.vercel.app/api/transcribe",
   hotkey: "CommandOrControl+Shift+Space",
   locale: "en-IN",
   vocabulary: "",
@@ -26,6 +27,10 @@ export const DEFAULTS: DesktopSettings = {
 };
 
 const file = () => join(app.getPath("userData"), "settings.json");
+
+export function isFirstRun(): boolean {
+  return !existsSync(file());
+}
 
 export function loadSettings(): DesktopSettings {
   try {

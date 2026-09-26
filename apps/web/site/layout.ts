@@ -90,5 +90,5 @@ ${o.body}
 
 // The ultrasound probe's sector (fan) with a sound wave: the brand mark.
 export function logoMark(): string {
-  return `<svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 5 L5 26 A13 13 0 0 0 27 26 Z" fill="currentColor" opacity=".16"/><path d="M16 5 L5 26 A13 13 0 0 0 27 26 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M10 19.5 q6 -3.5 12 0 M8.3 23 q7.7 -4.4 15.4 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+  return `<svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 5 L6.5 24 A21.3 21.3 0 0 0 25.5 24 Z" fill="currentColor" opacity=".16"/><path d="M16 5 L6.5 24 A21.3 21.3 0 0 0 25.5 24 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12.75 12.3 A8 8 0 0 0 19.25 12.3 M10.3 17.8 A14 14 0 0 0 21.7 17.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
 }

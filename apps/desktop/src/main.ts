@@ -3,7 +3,7 @@
 import { app, BrowserWindow, globalShortcut, ipcMain, Menu, nativeImage, Notification, screen, session, shell, systemPreferences, Tray } from "electron";
 import { join } from "node:path";
 import { transcribe, TranscribeError, type TranscribeConfig } from "@medical-dict/core";
-import { isConfigured, loadSettings, saveSettings, type DesktopSettings } from "./store";
+import { isConfigured, isFirstRun, loadSettings, saveSettings, type DesktopSettings } from "./store";
 import { disposePaste, typeText } from "./paste";
 
 type DictationState = "idle" | "starting" | "listening" | "finishing";
@@ -34,7 +34,9 @@ if (!app.requestSingleInstanceLock()) {
 }
 
 async function start() {
+  const firstRun = isFirstRun();
   settings = loadSettings();
+  if (firstRun) saveSettings(settings);
   if (process.platform === "darwin") app.dock?.hide();
 
   session.defaultSession.setPermissionRequestHandler((_wc, permission, cb) => cb(permission === "media"));
@@ -48,7 +50,9 @@ async function start() {
   createOverlay();
   createTray();
   registerHotkey();
-  if (!isConfigured(settings)) openSettings();
+  // The settings window doubles as the welcome screen (it shows how to dictate).
+  if (firstRun || !isConfigured(settings)) openSettings();
+  else notify(`USGScribe is running. Press ${prettyHotkey(settings.hotkey)} to dictate.`);
 }
 
 function createOverlay() {
@@ -159,6 +163,17 @@ function openSettings() {
     icon: asset("icon.png"),
     autoHideMenuBar: true,
     webPreferences: { preload: join(__dirname, "preload.cjs") },
+  });
+  // Links (e.g. "get one free") open in the browser, not inside the settings window.
+  settingsWin.webContents.on("will-navigate", (e, url) => {
+    if (url.startsWith("http")) {
+      e.preventDefault();
+      void shell.openExternal(url);
+    }
+  });
+  settingsWin.webContents.setWindowOpenHandler(({ url }) => {
+    void shell.openExternal(url);
+    return { action: "deny" };
   });
   settingsWin.loadFile(join(__dirname, "settings.html"));
 }

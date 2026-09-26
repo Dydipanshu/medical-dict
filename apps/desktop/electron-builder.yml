@@ -10,6 +10,7 @@ win:
   target: [nsis, portable]
   icon: assets/icon.png
 nsis:
+  artifactName: USGScribe-Setup.${ext}
   oneClick: true
   perMachine: false
 mac:

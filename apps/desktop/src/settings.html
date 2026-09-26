@@ -26,9 +26,9 @@
 
       <form id="form">
         <label class="field">
-          <span>Groq API key <a href="https://console.groq.com/keys" id="groq-link">get one free</a></span>
-          <input id="groqApiKey" type="password" placeholder="gsk_…" autocomplete="off" spellcheck="false" />
-          <small>Free, no card needed. Stays on this computer.</small>
+          <span>Your own Groq API key (optional) <a href="https://console.groq.com/keys" id="groq-link">get one free</a></span>
+          <input id="groqApiKey" type="password" placeholder="Leave empty to use the USGScribe service" autocomplete="off" spellcheck="false" />
+          <small>Not needed: dictation works without it. A key of your own gives you a private quota.</small>
         </label>
 
         <label class="field">
@@ -59,7 +59,7 @@
         <details>
           <summary>Advanced</summary>
           <label class="field">
-            <span>USGScribe server URL (instead of a key)</span>
+            <span>Transcription service URL</span>
             <input id="serverUrl" placeholder="https://your-app.vercel.app/api/transcribe" spellcheck="false" />
           </label>
         </details>
