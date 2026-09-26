@@ -16,6 +16,7 @@ const DETAILS: [string, string][] = [
   ["grade one fatty liver", "grade I fatty liver"],
   ["impression colon", "Impression:"],
   ["insert clinical correlation", "Kindly correlate clinically."],
+  ["replace liver …", "Rewrites the LIVER line with what you say next"],
   ["insert normal kidneys", "Both kidneys are normal in size, shape, position and echotexture. Corticomedullary differentiation is maintained. No calculus or hydronephrosis seen on either side."],
 ];
 
@@ -78,7 +79,7 @@ function landing(): string {
       <p class="said" id="said" aria-hidden="true"></p>
       <div class="film-meta">
         <button class="film-toggle" type="button" id="film-toggle" aria-label="Play video">Play</button>
-        <p class="film-note" id="film-note">Unedited recording of the web app at normal speed. The doctor selects the liver finding, speaks, then moves to the impression.</p>
+        <p class="film-note" id="film-note">Unedited recording of the web app at normal speed. The doctor never touches the mouse: “replace liver” and “replace impression” move the cursor.</p>
       </div>
     </figcaption>
   </figure>
@@ -221,7 +222,11 @@ function formatsIndex(): string {
 function formatPage(slug: string): string {
   const f = FORMATS.find((x) => x.slug === slug)!;
   const t = TEMPLATES.find((x) => x.id === f.templateId)!;
-  const html = t.html.replace(/__/g, '<span class="blank">__</span>');
+  // Labels as real text (so copying into Word keeps them), blanks highlighted.
+  const html = t.html
+    .replace(/<p data-label="IMPRESSION">/g, '<p class="finding impression"><b class="f-label">IMPRESSION :</b> ')
+    .replace(/<p data-label="([^"]+)">/g, '<p class="finding"><b class="f-label">$1 :</b> ')
+    .replace(/__/g, '<span class="blank">__</span>');
   const others = FORMATS.filter((x) => x.slug !== slug);
   const body = `
 <section class="band page-top">

@@ -110,15 +110,22 @@ a { color: inherit; }
   display: flex; flex-direction: column;
   font-family: Calibri, Carlito, Arial, sans-serif; font-size: 15px; line-height: 1.55; color: #111;
 }
-.letterhead { text-align: center; border-bottom: 1.5px solid #111; padding-bottom: 10px; margin-bottom: 16px; }
+.letterhead { text-align: center; padding-bottom: 12px; }
 .clinic-name { font-size: 22px; font-weight: 700; }
 .clinic-line { font-size: 13px; color: #444; }
-.patient-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; padding: 4px 0 10px; border-bottom: 1px solid #bbb; }
-.patient-grid label { display: flex; align-items: baseline; gap: 6px; min-width: 0; padding: 3px 0; }
-.patient-grid span { font-weight: 700; white-space: nowrap; font-size: 14px; }
-.patient-grid span::after { content: ":"; }
-.patient-grid input { flex: 1; min-width: 0; border: 0; border-bottom: 1px dashed #c9c9c5; padding: 2px 4px; font-size: 14px; background: transparent; font-family: inherit; }
-.patient-grid input:focus { outline: none; border-bottom: 1px solid #111; background: #f6f6f4; }
+.letterhead-space { border-bottom: 1px dashed #d4d4d0; margin-bottom: 12px; }
+.patient-table { width: 100%; border-collapse: collapse; border-top: 1.5px solid #111; border-bottom: 1.5px solid #111; font-size: 14px; }
+.patient-table th { text-align: left; font-weight: 700; white-space: nowrap; padding: 5px 8px 5px 0; width: 1%; }
+.patient-table th::after { content: " :"; }
+.patient-table th:empty::after { content: none; }
+.patient-table td { padding: 3px 18px 3px 0; width: 49%; }
+.patient-table input { width: 100%; border: 0; border-bottom: 1px dashed transparent; padding: 2px 2px; font: inherit; background: transparent; }
+.patient-table input:hover { border-bottom-color: #d4d4d0; }
+.patient-table input:focus { outline: none; border-bottom: 1px solid #111; background: #f6f6f4; }
+.patient-table input::placeholder { color: #b4b4b0; }
+.age-sex { white-space: nowrap; }
+.age-sex input { display: inline-block; width: auto; min-width: 2.5ch; field-sizing: content; vertical-align: baseline; }
+.age-sex span { padding: 0 4px; }
 .report-title {
   display: block; width: 100%; margin: 18px 0 8px; border: 0; text-align: center; background: transparent; font-family: inherit;
   font-size: 17px; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; letter-spacing: 0.03em;
@@ -126,7 +133,15 @@ a { color: inherit; }
 .report-title:focus { outline: none; background: #f6f6f4; }
 .report-body { flex: 1; }
 .report-body .tiptap { outline: none; min-height: 400px; }
-.report-body .tiptap p { margin: 0 0 6px; }
+.report-body .tiptap p { margin: 0 0 7px; }
+/* Finding lines: organ label in a left column, text with a hanging indent. */
+.report-body .tiptap p.finding { position: relative; padding-left: 184px; }
+.report-body .tiptap p.finding::before {
+  content: attr(data-label) " :"; position: absolute; left: 0; top: 0; width: 178px;
+  font-weight: 700; white-space: normal; user-select: none;
+}
+.report-body .tiptap p.finding[data-label="IMPRESSION"] { margin-top: 18px; font-weight: 700; }
+.report-body .tiptap p.finding[data-label="IMPRESSION"]::before { text-decoration: underline; text-underline-offset: 3px; }
 .report-body .tiptap h3 { font-size: 15px; margin: 16px 0 6px; letter-spacing: 0.03em; }
 .report-body .tiptap ul, .report-body .tiptap ol { padding-left: 22px; margin: 4px 0 8px; }
 .report-body .tiptap table { border-collapse: collapse; width: 100%; margin: 6px 0 12px; table-layout: fixed; }
@@ -135,7 +150,10 @@ a { color: inherit; }
 .report-body .tiptap td p, .report-body .tiptap th p { margin: 0; }
 .report-body .tiptap .selectedCell { background: #efefec; }
 .report-body .tiptap p.is-editor-empty:first-child::before { content: attr(data-placeholder); color: #9a9a96; float: left; height: 0; pointer-events: none; }
-.signature { margin-top: 56px; text-align: right; }
+.pcpndt { margin: 22px 0 0; padding-top: 10px; border-top: 1px solid #bbb; font-size: 13.5px; line-height: 1.5; }
+.signature { margin-top: 40px; text-align: right; break-inside: avoid; }
+.sig-space { height: 36px; }
+.disclaimer { margin: 28px 0 0; padding-top: 8px; border-top: 1px solid #ddd; font-size: 11.5px; color: #555; text-align: center; }
 .sig-name { font-weight: 700; }
 .sig-qual { font-size: 13px; color: #444; }
 .notfound { padding: 80px 16px; text-align: center; }
@@ -196,6 +214,9 @@ a { color: inherit; }
 .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .field > span { font-size: 13.5px; font-weight: 600; }
 .field small { color: var(--muted); font-size: 13px; }
+.check { display: flex; gap: 10px; align-items: center; font-weight: 600; font-size: 14px; cursor: pointer; }
+.check input { width: 18px; height: 18px; accent-color: #000; }
+.field-narrow { max-width: 260px; }
 .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .field input, .field select, .field textarea, .macro-row input, .macro-row textarea {
   width: 100%; padding: 9px 11px; border: 1px solid var(--line-strong); border-radius: 8px; background: #fff;
@@ -215,7 +236,11 @@ a { color: inherit; }
 /* ---------- small screens ---------- */
 @media (max-width: 640px) {
   .paper { padding: 28px 18px; min-height: 0; }
-  .patient-grid { grid-template-columns: 1fr; }
+  .patient-table, .patient-table tbody, .patient-table tr { display: block; }
+  .patient-table th, .patient-table td { display: inline-block; width: auto; }
+  .patient-table td { width: calc(100% - 90px); }
+  .patient-table th { width: 84px; }
+  .report-body .tiptap p.finding { padding-left: 0; padding-top: 1.45em; }
   .bar-actions .btn { padding: 0 10px; }
   .bar-actions .btn svg + * { display: none; }
 }
@@ -227,7 +252,9 @@ a { color: inherit; }
   .no-print, .toolbar { display: none !important; }
   .canvas { padding: 0; }
   .paper { border: 0; box-shadow: none; padding: 0; max-width: none; min-height: 0; }
-  .patient-grid input { border: 0; padding: 0; }
+  .patient-table input { border: 0 !important; padding: 0; background: none !important; }
+  .patient-table input::placeholder { color: transparent; }
+  .letterhead-space { border: 0; }
   .report-body .tiptap p.is-editor-empty:first-child::before { content: none; }
   .report-body table, .report-body tr, .signature { break-inside: avoid; }
 }

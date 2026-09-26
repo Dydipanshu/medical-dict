@@ -21,20 +21,17 @@ import {
   Underline,
   Undo2,
 } from "lucide-react";
-import { joinWithContext, processTranscript } from "@medical-dict/core";
+import { joinWithContext, pcpndtDeclaration, processTranscript } from "@medical-dict/core";
+import { FindingLabel } from "./findingLabel";
 import { loadReports, saveReport, type Patient, type Report, type Settings } from "./storage";
 import { useDictation } from "./useDictation";
 import { insertDictation } from "./insert";
 import { navigate } from "./nav";
 
-const PATIENT_FIELDS: { key: keyof Patient; label: string; wide?: boolean }[] = [
-  { key: "name", label: "Patient name", wide: true },
-  { key: "date", label: "Date" },
-  { key: "age", label: "Age" },
-  { key: "sex", label: "Sex" },
-  { key: "patientId", label: "Patient ID" },
-  { key: "referredBy", label: "Referred by", wide: true },
-];
+/** How many "__" blanks are still in the report. */
+function countBlanks(html: string): number {
+  return (html.replace(/<[^>]+>/g, " ").match(/_{2,}/g) ?? []).length;
+}
 
 export function ReportEditor({ id, settings }: { id: string; settings: Settings }) {
   const [report, setReport] = useState<Report | undefined>(() => loadReports().find((r) => r.id === id));
@@ -64,6 +61,7 @@ export function ReportEditor({ id, settings }: { id: string; settings: Settings 
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ link: false }),
+      FindingLabel,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       TableKit.configure({ table: { resizable: false } }),
       Placeholder.configure({ placeholder: "Press F2 and start speaking, or type here…" }),
@@ -143,6 +141,16 @@ export function ReportEditor({ id, settings }: { id: string; settings: Settings 
 
   const title = report.patient.name.trim() || "Untitled patient";
 
+  const print = () => {
+    const blanks = countBlanks(report.html);
+    if (blanks && !confirm(`${blanks} blank${blanks > 1 ? "s" : ""} (__) not filled in yet. Print anyway?`)) return;
+    window.print();
+  };
+
+  const field = (key: keyof Patient, placeholder = "") => (
+    <input data-dictate={key} value={report.patient[key]} placeholder={placeholder} onChange={(e) => setPatient(key, e.target.value)} />
+  );
+
   return (
     <div className="editor-page">
       <header className="bar no-print">
@@ -160,7 +168,7 @@ export function ReportEditor({ id, settings }: { id: string; settings: Settings 
           <button className="btn" onClick={async () => editor && (await import("./exportDocx")).exportDocx(report, editor.getJSON(), settings)}>
             <Download size={16} /> Word file
           </button>
-          <button className="btn btn-dark" onClick={() => window.print()}>
+          <button className="btn btn-dark" onClick={print}>
             <Printer size={16} /> Print
           </button>
         </div>
@@ -170,29 +178,61 @@ export function ReportEditor({ id, settings }: { id: string; settings: Settings 
 
       <main className="canvas">
         <article className="paper">
-          <header className="letterhead">
-            <div className="clinic-name">{settings.clinicName}</div>
-            <div className="clinic-line">{settings.clinicAddress}</div>
-            <div className="clinic-line">{settings.clinicContact}</div>
-          </header>
+          {settings.preprintedLetterhead ? (
+            <div className="letterhead-space" style={{ height: `${settings.letterheadSpaceMm}mm` }} aria-label="Space for pre-printed letterhead" />
+          ) : (
+            <header className="letterhead">
+              <div className="clinic-name">{settings.clinicName}</div>
+              <div className="clinic-line">{settings.clinicAddress}</div>
+              <div className="clinic-line">{settings.clinicContact}</div>
+            </header>
+          )}
 
-          <section className="patient-grid">
-            {PATIENT_FIELDS.map((f) => (
-              <label key={f.key} className={f.wide ? "wide" : ""}>
-                <span>{f.label}</span>
-                <input data-dictate={f.key} value={report.patient[f.key]} onChange={(e) => setPatient(f.key, e.target.value)} />
-              </label>
-            ))}
-          </section>
+          <table className="patient-table">
+            <tbody>
+              <tr>
+                <th scope="row">Name</th>
+                <td>{field("name")}</td>
+                <th scope="row">Age / Sex</th>
+                <td className="age-sex">
+                  {field("age", "Age")}
+                  <span aria-hidden>/</span>
+                  {field("sex", "Sex")}
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Ref. by</th>
+                <td>{field("referredBy")}</td>
+                <th scope="row">Date</th>
+                <td>{field("date")}</td>
+              </tr>
+              <tr>
+                <th scope="row">Reg. No.</th>
+                <td>{field("patientId")}</td>
+                <th />
+                <td />
+              </tr>
+            </tbody>
+          </table>
 
           <input className="report-title" data-dictate="title" value={report.title} onChange={(e) => update({ title: e.target.value })} />
 
           <EditorContent editor={editor} className="report-body" />
 
+          {report.pcpndt && (
+            <p className="pcpndt">
+              <strong>Declaration (PCPNDT Act):</strong> {pcpndtDeclaration(settings.doctorName, report.patient.name)}
+            </p>
+          )}
+
           <footer className="signature">
+            <div className="sig-space" />
             <div className="sig-name">{settings.doctorName}</div>
             <div className="sig-qual">{settings.doctorQualification}</div>
+            {settings.doctorDesignation && <div className="sig-qual">{settings.doctorDesignation}</div>}
+            {settings.registrationNo && <div className="sig-qual">Reg. No. {settings.registrationNo}</div>}
           </footer>
+          {settings.disclaimer.trim() && <p className="disclaimer">{settings.disclaimer}</p>}
         </article>
       </main>
 
@@ -246,6 +286,10 @@ function RecBar({ dictation: d, macros, onPhrase }: { dictation: Dictation; macr
             </>
           ) : (
             <dl className="commands">
+              <dt>replace liver</dt>
+              <dd>Replaces the LIVER line with what you say next</dd>
+              <dt>go to impression</dt>
+              <dd>Moves to the end of the IMPRESSION line</dd>
               <dt>new line</dt>
               <dd>Starts the next line</dd>
               <dt>new paragraph</dt>

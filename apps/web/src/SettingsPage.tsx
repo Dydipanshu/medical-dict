@@ -21,7 +21,10 @@ export function SettingsPage({ settings, onChange }: { settings: Settings; onCha
   const set = <K extends keyof Settings>(key: K, value: Settings[K]) => onChange({ ...settings, [key]: value });
   const engine = useEngine(settings);
 
-  const text = (key: "clinicName" | "clinicAddress" | "clinicContact" | "doctorName" | "doctorQualification", label: string) => (
+  const text = (
+    key: "clinicName" | "clinicAddress" | "clinicContact" | "doctorName" | "doctorQualification" | "doctorDesignation" | "registrationNo",
+    label: string,
+  ) => (
     <label className="field">
       <span>{label}</span>
       <input value={settings[key]} onChange={(e) => set(key, e.target.value)} />
@@ -51,14 +54,45 @@ export function SettingsPage({ settings, onChange }: { settings: Settings; onCha
       </header>
 
       <main className="settings-main">
-        <Section title="Letterhead" hint="Printed at the top and bottom of every report.">
-          {text("clinicName", "Clinic name")}
-          {text("clinicAddress", "Address")}
-          {text("clinicContact", "Phone or email")}
+        <Section title="Letterhead" hint="Printed at the top of every report.">
+          <label className="check">
+            <input type="checkbox" checked={settings.preprintedLetterhead} onChange={(e) => set("preprintedLetterhead", e.target.checked)} />
+            I print on paper that already has our letterhead
+          </label>
+          {settings.preprintedLetterhead ? (
+            <label className="field field-narrow">
+              <span>Space to leave at the top (mm)</span>
+              <input
+                type="number"
+                min={0}
+                max={120}
+                value={settings.letterheadSpaceMm}
+                onChange={(e) => set("letterheadSpaceMm", Math.max(0, Math.min(120, Number(e.target.value) || 0)))}
+              />
+            </label>
+          ) : (
+            <>
+              {text("clinicName", "Clinic name")}
+              {text("clinicAddress", "Address")}
+              {text("clinicContact", "Phone or email")}
+            </>
+          )}
+        </Section>
+
+        <Section title="Signature" hint="Printed at the bottom right of every report.">
           <div className="field-row">
             {text("doctorName", "Doctor's name")}
             {text("doctorQualification", "Qualification")}
           </div>
+          <div className="field-row">
+            {text("doctorDesignation", "Designation")}
+            {text("registrationNo", "Medical council registration no.")}
+          </div>
+          <label className="field">
+            <span>Note at the foot of the report</span>
+            <textarea rows={2} value={settings.disclaimer} onChange={(e) => set("disclaimer", e.target.value)} />
+            <small>Leave empty to print no note. Obstetric reports also carry the PCPNDT declaration automatically.</small>
+          </label>
         </Section>
 
         <Section title="Speech" hint={<>Now using {engineName}.</>}>

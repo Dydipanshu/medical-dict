@@ -171,6 +171,11 @@ kbd { font: 600 0.85em/1 var(--sans); padding: 3px 7px; border: 1px solid var(--
 .sheet-static th { background: var(--tint); }
 .sheet-static td p, .sheet-static th p { margin: 0; }
 .sheet-static h3 { font: 700 16px/1.3 Calibri, Carlito, Arial, sans-serif; letter-spacing: 0.03em; margin: 16px 0 6px; }
+.sheet .finding { position: relative; padding-left: 190px; }
+.sheet .impression { margin-top: 16px !important; font-weight: 700; }
+.sheet .impression .f-label { text-decoration: underline; text-underline-offset: 3px; }
+.sheet .f-label { position: absolute; left: 0; top: 0; width: 184px; }
+@media (max-width: 640px) { .sheet .finding { padding-left: 0; } .sheet .f-label { position: static; display: block; width: auto; } }
 .blank { color: var(--muted); background: var(--tint); padding: 0 3px; border-radius: 2px; }
 .format-main .fine { margin-top: 14px; }
 .format-side { position: sticky; top: 88px; border-top: 1px solid var(--ink); padding-top: 16px; }

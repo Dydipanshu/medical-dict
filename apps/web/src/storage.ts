@@ -20,6 +20,8 @@ export interface Report {
   templateId: string;
   patient: Patient;
   html: string;
+  /** Obstetric scans carry the PCPNDT declaration. */
+  pcpndt?: boolean;
   createdAt: number;
   updatedAt: number;
 }
@@ -32,6 +34,13 @@ export interface Settings {
   clinicContact: string;
   doctorName: string;
   doctorQualification: string;
+  doctorDesignation: string;
+  registrationNo: string;
+  /** Printed small at the bottom of every report; empty to leave out. */
+  disclaimer: string;
+  /** Printing on paper that already has the clinic's letterhead. */
+  preprintedLetterhead: boolean;
+  letterheadSpaceMm: number;
   engine: Engine;
   groqApiKey: string;
   locale: string;
@@ -45,6 +54,11 @@ export const DEFAULT_SETTINGS: Settings = {
   clinicContact: "Phone: 00000 00000",
   doctorName: "Dr. Your Name",
   doctorQualification: "MBBS, MD (Radiodiagnosis)",
+  doctorDesignation: "Consultant Radiologist",
+  registrationNo: "",
+  disclaimer: "This report is a professional opinion based on sonographic findings and should be correlated clinically. Not valid for medico-legal purposes.",
+  preprintedLetterhead: false,
+  letterheadSpaceMm: 40,
   engine: "auto",
   groqApiKey: "",
   locale: "en-IN",
@@ -107,6 +121,7 @@ export function newReport(templateId: string): Report {
     templateId: t.id,
     patient: { name: "", age: "", sex: "", patientId: "", referredBy: "", date: today() },
     html: t.html,
+    pcpndt: !!t.pcpndt,
     createdAt: now,
     updatedAt: now,
   };
