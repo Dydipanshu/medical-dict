@@ -2,9 +2,20 @@ import { useEffect, useState } from "react";
 import { ReportList } from "./ReportList";
 import { ReportEditor } from "./ReportEditor";
 import { SettingsPage } from "./SettingsPage";
-import { loadSettings, saveSettings, type Settings } from "./storage";
+import { loadSettings, newReport, saveReport, saveSettings, type Settings } from "./storage";
 
 type Route = { page: "list" } | { page: "report"; id: string } | { page: "settings" };
+
+// Deep link from the website's report-format pages: #/new/<templateId> creates
+// the report once and swaps the URL to it, so reloading doesn't make another.
+function consumeNewReportLink() {
+  const m = location.hash.match(/^#\/?new\/([\w-]+)$/);
+  if (!m) return;
+  const r = newReport(m[1]);
+  saveReport(r);
+  history.replaceState(null, "", `#/report/${r.id}`);
+}
+consumeNewReportLink();
 
 function parseHash(): Route {
   const h = location.hash.replace(/^#\/?/, "");
@@ -18,7 +29,10 @@ export function App() {
   const [settings, setSettings] = useState<Settings>(loadSettings);
 
   useEffect(() => {
-    const on = () => setRoute(parseHash());
+    const on = () => {
+      consumeNewReportLink();
+      setRoute(parseHash());
+    };
     window.addEventListener("hashchange", on);
     return () => window.removeEventListener("hashchange", on);
   }, []);

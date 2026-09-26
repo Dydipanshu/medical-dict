@@ -6,7 +6,7 @@ import { DEFAULT_MACROS, type Macro } from "@medical-dict/core";
 export interface DesktopSettings {
   /** Your own free Groq key (console.groq.com/keys). */
   groqApiKey: string;
-  /** Or a SonoScribe server, e.g. https://your-app.vercel.app/api/transcribe */
+  /** Or a USGScribe server, e.g. https://your-app.vercel.app/api/transcribe */
   serverUrl: string;
   hotkey: string;
   locale: string;

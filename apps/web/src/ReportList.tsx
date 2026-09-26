@@ -28,13 +28,13 @@ export function ReportList({ settings }: { settings: Settings }) {
   return (
     <div className="home">
       <header className="topbar">
-        <div className="brand">
+        <a className="brand" href="/" title="USGScribe home">
           <span className="brand-mark">
             <Mic size={18} />
           </span>
           <span>{APP_NAME}</span>
           <span className="brand-clinic">{settings.clinicName}</span>
-        </div>
+        </a>
         <button className="btn ghost" onClick={() => navigate("settings")}>
           <Cog size={16} /> Settings
         </button>

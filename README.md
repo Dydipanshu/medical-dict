@@ -1,11 +1,12 @@
-# SonoScribe
+# USGScribe
 
 Voice dictation for ultrasound reports. Doctors speak and the report writes itself,
 either **straight into MS Word** (desktop app) or in a **Docs-style web editor**
 with templates, printing and .docx export.
 
 ```
-apps/web       Web app: report editor, templates, print, .docx export, /api/transcribe
+apps/web       Website + web app. site/ = static marketing & SEO pages (landing, USG report
+               formats, privacy, sitemap), generated at build. src/ = the report editor at /app/.
 apps/desktop   Tray app for Windows / Mac / Linux: hotkey → speak → text typed into Word (or any app)
 packages/core  Shared: mic capture + pause detection, Whisper client, voice commands, macros, templates
 ```
@@ -41,11 +42,12 @@ With no key, the web app falls back to the browser's built-in speech recognition
 ### Web app
 
 ```bash
-npm run dev:web             # http://localhost:5173
+npm run dev:web             # site on http://localhost:5173, app on http://localhost:5173/app/
 npm run build:web && npm run start:web   # production server on :3000
 ```
 
-**Hosting:** live at https://sonoscribe-nine.vercel.app (Vercel free tier, project `sonoscribe`).
+**Hosting:** Vercel free tier. `SITE_URL` (env var) sets canonical URLs, the sitemap and share
+images; it defaults to https://usgscribe.com.
 The project is connected to this GitHub repo, so every push to `main` redeploys automatically.
 Its root directory is `apps/web`, and `GROQ_API_KEY` is set as a Vercel environment variable.
 `api/transcribe.ts` runs as a serverless function, so the key never reaches the browser, and a
@@ -69,7 +71,7 @@ On first launch the settings window opens. Paste in a Groq key, or a deployed we
 3. Press it again to stop. Dictation also stops by itself after 90 seconds of silence.
 
 - The shortcut can be changed in settings. A USB foot pedal that sends a key works too.
-- `SonoScribe --toggle` starts/stops dictation from a script (AutoHotkey, Stream Deck, pedal software).
+- `USGScribe --toggle` starts/stops dictation from a script (AutoHotkey, Stream Deck, pedal software).
 - **Mac:** allow Microphone and **Accessibility** (System Settings → Privacy & Security) so it can paste.
 - **Linux:** needs `xdotool` (X11) or `wtype` (Wayland).
 - **Word:** Word shows a small "Paste Options" button after each paste. To hide it:

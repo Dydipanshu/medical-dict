@@ -3,7 +3,7 @@ import { DEFAULT_MACROS, TEMPLATES, type Macro } from "@medical-dict/core";
 // Everything is stored in this browser only (no patient data leaves the device
 // except the audio sent for transcription).
 
-export const APP_NAME = "SonoScribe";
+export const APP_NAME = "USGScribe";
 
 export interface Patient {
   name: string;
@@ -52,8 +52,8 @@ export const DEFAULT_SETTINGS: Settings = {
   macros: DEFAULT_MACROS,
 };
 
-const REPORTS_KEY = "sonoscribe.reports.v1";
-const SETTINGS_KEY = "sonoscribe.settings.v1";
+const REPORTS_KEY = "usgscribe.reports.v1";
+const SETTINGS_KEY = "usgscribe.settings.v1";
 
 function read<T>(key: string, fallback: T): T {
   try {

@@ -16,6 +16,8 @@ const TYPES: Record<string, string> = {
   ".png": "image/png",
   ".ico": "image/x-icon",
   ".json": "application/json",
+  ".xml": "application/xml",
+  ".txt": "text/plain; charset=utf-8",
   ".woff2": "font/woff2",
 };
 
@@ -41,8 +43,16 @@ export async function sendWebResponse(res: ServerResponse, r: Response) {
 
 async function serveStatic(url: string, res: ServerResponse) {
   const path = normalize(decodeURIComponent(url.split("?")[0])).replace(/^(\.\.[/\\])+/, "");
-  let file = join(DIST, path);
-  if (!file.startsWith(DIST) || !(await stat(file).catch(() => null))?.isFile()) file = join(DIST, "index.html");
+  const isFile = async (f: string) => f.startsWith(DIST) && !!(await stat(f).catch(() => null))?.isFile();
+  // Same URL rules as vercel.json: clean URLs (/privacy -> privacy.html), the app under /app/.
+  const candidates = [join(DIST, path), join(DIST, `${path.replace(/\/$/, "")}.html`), join(DIST, path, "index.html")];
+  let file: string | undefined;
+  for (const c of candidates) if (await isFile(c)) { file = c; break; }
+  if (!file && path.startsWith("/app")) file = join(DIST, "app", "index.html");
+  if (!file) {
+    res.writeHead(404, { "content-type": "text/plain" }).end("Not found");
+    return;
+  }
   const body = await readFile(file);
   const immutable = file.includes(`${DIST}/assets/`);
   res.writeHead(200, {
@@ -74,5 +84,5 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       console.error(e);
       res.writeHead(500).end("Internal error");
     }
-  }).listen(PORT, () => console.log(`SonoScribe on http://localhost:${PORT}`));
+  }).listen(PORT, () => console.log(`USGScribe on http://localhost:${PORT}`));
 }

@@ -56,7 +56,7 @@ async function sendPasteShortcut(): Promise<void> {
       /* try the next tool */
     }
   }
-  throw new Error("Install xdotool (X11) or wtype (Wayland) so SonoScribe can type for you.");
+  throw new Error("Install xdotool (X11) or wtype (Wayland) so USGScribe can type for you.");
 }
 
 // Copies every format on the clipboard (text, Word's rich formats, images) so it

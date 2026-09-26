@@ -13,12 +13,12 @@ export interface TranscribeConfig {
 }
 
 export class TranscribeError extends Error {
-  constructor(
-    message: string,
-    readonly status: number,
-    readonly retryAfterMs?: number,
-  ) {
+  readonly status: number;
+  readonly retryAfterMs?: number;
+  constructor(message: string, status: number, retryAfterMs?: number) {
     super(message);
+    this.status = status;
+    this.retryAfterMs = retryAfterMs;
   }
 }
 
@@ -69,12 +69,20 @@ export class TranscriptionQueue {
   private running = false;
   private idleWaiters: (() => void)[] = [];
 
+  private cfg: () => TranscribeConfig;
+  private ev: QueueEvents;
+  private send: (audio: Blob, cfg: TranscribeConfig) => Promise<string>;
+
   constructor(
-    private cfg: () => TranscribeConfig,
-    private ev: QueueEvents,
+    cfg: () => TranscribeConfig,
+    ev: QueueEvents,
     /** Swap out the network call (the desktop app sends it via the main process). */
-    private send: (audio: Blob, cfg: TranscribeConfig) => Promise<string> = transcribe,
-  ) {}
+    send: (audio: Blob, cfg: TranscribeConfig) => Promise<string> = transcribe,
+  ) {
+    this.cfg = cfg;
+    this.ev = ev;
+    this.send = send;
+  }
 
   push(pcm: Float32Array) {
     this.pending.push(pcm);

@@ -1,9 +1,9 @@
 {
   "name": "@medical-dict/desktop",
-  "productName": "SonoScribe",
+  "productName": "USGScribe",
   "version": "0.1.0",
   "private": true,
-  "author": "SonoScribe",
+  "author": "USGScribe",
   "description": "Voice dictation for ultrasound reports - types into MS Word or any app",
   "main": "out/main.cjs",
   "scripts": {

@@ -16,8 +16,47 @@ function api(): Plugin {
   };
 }
 
+// The marketing site (landing, report formats, privacy) is generated as static
+// HTML from site/pages.ts: emitted as files at build, rendered per request in dev.
+function site(): Plugin {
+  type SiteModule = typeof import("./site/pages.ts");
+  const files = (m: SiteModule) => {
+    const out = new Map(m.sitePages());
+    out.set("sitemap.xml", m.sitemap());
+    out.set("robots.txt", m.robots());
+    return out;
+  };
+  return {
+    name: "site",
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        const path = (req.url ?? "/").split(/[?#]/)[0];
+        if (path.startsWith("/app") || path.startsWith("/@") || path.startsWith("/src/") || path.startsWith("/node_modules/")) return next();
+        const m = (await server.ssrLoadModule("/site/pages.ts")) as SiteModule;
+        const all = files(m);
+        const key = path === "/" ? "index.html" : path.slice(1).replace(/\/$/, "");
+        const body = all.get(key) ?? all.get(`${key}.html`);
+        if (body === undefined) return next();
+        res.setHeader("content-type", key.endsWith(".xml") ? "application/xml" : key.endsWith(".txt") ? "text/plain" : "text/html; charset=utf-8");
+        res.end(body);
+      });
+    },
+    async generateBundle() {
+      const m = (await import("./site/pages.ts")) as SiteModule;
+      for (const [fileName, source] of files(m)) this.emitFile({ type: "asset", fileName, source });
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => {
-  // Accept GROQ_API_KEY from apps/web/.env or the repo-root .env.
+  // Accept GROQ_API_KEY / SITE_URL from apps/web/.env or the repo-root .env.
   Object.assign(process.env, loadEnv(mode, "../..", ""), loadEnv(mode, ".", ""));
-  return { plugins: [react(), api()], build: { chunkSizeWarningLimit: 1000 } };
+  return {
+    appType: "mpa",
+    plugins: [react(), api(), site()],
+    build: {
+      chunkSizeWarningLimit: 1000,
+      rollupOptions: { input: { app: "app/index.html" } },
+    },
+  };
 });

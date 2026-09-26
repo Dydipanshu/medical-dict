@@ -1,5 +1,5 @@
-appId: com.sonoscribe.desktop
-productName: SonoScribe
+appId: com.usgscribe.desktop
+productName: USGScribe
 directories:
   output: release
 files:
@@ -17,7 +17,7 @@ mac:
   icon: assets/icon.png
   category: public.app-category.medical
   extendInfo:
-    NSMicrophoneUsageDescription: SonoScribe listens to your dictation to write reports.
+    NSMicrophoneUsageDescription: USGScribe listens to your dictation to write reports.
     LSUIElement: true
 linux:
   target: [AppImage]

@@ -1,4 +1,4 @@
-// SonoScribe desktop: lives in the tray. Press the hotkey anywhere (MS Word,
+// USGScribe desktop: lives in the tray. Press the hotkey anywhere (MS Word,
 // an EMR, Notepad…), speak, and the report text is typed where the cursor is.
 import { app, BrowserWindow, globalShortcut, ipcMain, Menu, nativeImage, Notification, screen, session, shell, systemPreferences, Tray } from "electron";
 import { join } from "node:path";
@@ -11,10 +11,10 @@ type DictationState = "idle" | "starting" | "listening" | "finishing";
 const asset = (name: string) => join(__dirname, "assets", name);
 
 // Test hook: feed a WAV file as the microphone (used by the automated Word test).
-if (process.env.SONOSCRIBE_USER_DATA) app.setPath("userData", process.env.SONOSCRIBE_USER_DATA);
-if (process.env.SONOSCRIBE_FAKE_AUDIO) {
+if (process.env.USGSCRIBE_USER_DATA) app.setPath("userData", process.env.USGSCRIBE_USER_DATA);
+if (process.env.USGSCRIBE_FAKE_AUDIO) {
   app.commandLine.appendSwitch("use-fake-device-for-media-stream");
-  app.commandLine.appendSwitch("use-file-for-fake-audio-capture", process.env.SONOSCRIBE_FAKE_AUDIO);
+  app.commandLine.appendSwitch("use-file-for-fake-audio-capture", process.env.USGSCRIBE_FAKE_AUDIO);
 }
 
 let settings: DesktopSettings;
@@ -27,7 +27,7 @@ let hideTimer: NodeJS.Timeout | undefined;
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
-  // `SonoScribe --toggle` starts/stops dictation, so foot-pedal software,
+  // `USGScribe --toggle` starts/stops dictation, so foot-pedal software,
   // AutoHotkey or a Stream Deck button can drive it. Plain relaunch opens settings.
   app.on("second-instance", (_e, argv) => (argv.includes("--toggle") ? toggle() : openSettings()));
   app.whenReady().then(start);
@@ -99,7 +99,7 @@ function prettyHotkey(accel: string) {
 function updateTray() {
   if (!tray) return;
   const listening = state === "listening" || state === "starting";
-  tray.setToolTip(listening ? "SonoScribe – listening" : `SonoScribe – press ${prettyHotkey(settings.hotkey)} to dictate`);
+  tray.setToolTip(listening ? "USGScribe – listening" : `USGScribe – press ${prettyHotkey(settings.hotkey)} to dictate`);
   if (process.platform !== "darwin") tray.setImage(asset(listening ? "tray-rec.png" : "tray.png"));
   tray.setContextMenu(
     Menu.buildFromTemplate([
@@ -108,7 +108,7 @@ function updateTray() {
       { label: "Settings…", click: () => openSettings() },
       { label: "Get a free Groq key…", click: () => shell.openExternal("https://console.groq.com/keys") },
       { type: "separator" },
-      { label: "Quit SonoScribe", role: "quit" },
+      { label: "Quit USGScribe", role: "quit" },
     ]),
   );
 }
@@ -143,7 +143,7 @@ function setState(next: DictationState) {
 }
 
 function notify(body: string) {
-  if (Notification.isSupported()) new Notification({ title: "SonoScribe", body }).show();
+  if (Notification.isSupported()) new Notification({ title: "USGScribe", body }).show();
 }
 
 function openSettings() {
@@ -155,7 +155,7 @@ function openSettings() {
   settingsWin = new BrowserWindow({
     width: 560,
     height: 760,
-    title: "SonoScribe Settings",
+    title: "USGScribe Settings",
     icon: asset("icon.png"),
     autoHideMenuBar: true,
     webPreferences: { preload: join(__dirname, "preload.cjs") },
@@ -198,7 +198,7 @@ ipcMain.handle("transcribe", async (_e, wav: ArrayBuffer, cfg: TranscribeConfig)
 });
 
 ipcMain.handle("type-text", async (_e, text: string) => {
-  if (process.env.SONOSCRIBE_DEBUG) console.log("type-text:", JSON.stringify(text));
+  if (process.env.USGSCRIBE_DEBUG) console.log("type-text:", JSON.stringify(text));
   try {
     await typeText(text);
     return { ok: true };
