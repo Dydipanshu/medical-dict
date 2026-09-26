@@ -45,9 +45,11 @@ npm run dev:web             # http://localhost:5173
 npm run build:web && npm run start:web   # production server on :3000
 ```
 
-**Deploy for free on Vercel:** import the repo, set the root directory to `apps/web` and add a
-`GROQ_API_KEY` environment variable. `api/transcribe.ts` becomes a serverless function, so the
-key never reaches the browser. It has a per-IP rate limit so a public demo can't use up the quota.
+**Hosting:** live at https://sonoscribe-nine.vercel.app (Vercel free tier, project `sonoscribe`).
+The project is connected to this GitHub repo, so every push to `main` redeploys automatically.
+Its root directory is `apps/web`, and `GROQ_API_KEY` is set as a Vercel environment variable.
+`api/transcribe.ts` runs as a serverless function, so the key never reaches the browser, and a
+per-IP rate limit stops a public demo from using up the quota.
 
 Reports and settings are stored in the browser's localStorage. Only the audio leaves the device.
 
