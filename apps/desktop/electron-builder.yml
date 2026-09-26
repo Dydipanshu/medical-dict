@@ -1,0 +1,25 @@
+appId: com.sonoscribe.desktop
+productName: SonoScribe
+directories:
+  output: release
+files:
+  - out/**
+  - package.json
+asar: true
+win:
+  target: [nsis, portable]
+  icon: assets/icon.png
+nsis:
+  oneClick: true
+  perMachine: false
+mac:
+  target: [dmg]
+  icon: assets/icon.png
+  category: public.app-category.medical
+  extendInfo:
+    NSMicrophoneUsageDescription: SonoScribe listens to your dictation to write reports.
+    LSUIElement: true
+linux:
+  target: [AppImage]
+  icon: assets/icon.png
+  category: Office

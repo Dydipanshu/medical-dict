@@ -1,0 +1,23 @@
+{
+  "name": "@medical-dict/desktop",
+  "productName": "SonoScribe",
+  "version": "0.1.0",
+  "private": true,
+  "author": "SonoScribe",
+  "description": "Voice dictation for ultrasound reports - types into MS Word or any app",
+  "main": "out/main.cjs",
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "node build.mjs && electron .",
+    "dist": "node build.mjs && electron-builder",
+    "dist:win": "node build.mjs && electron-builder --win",
+    "dist:mac": "node build.mjs && electron-builder --mac",
+    "dist:linux": "node build.mjs && electron-builder --linux",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "electron": "44.4.5",
+    "electron-builder": "^26.15.3",
+    "esbuild": "^0.28.2"
+  }
+}

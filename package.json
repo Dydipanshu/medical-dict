@@ -1,0 +1,21 @@
+{
+  "name": "medical-dict",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev -w @medical-dict/web",
+    "build:web": "npm run build -w @medical-dict/web",
+    "start:web": "npm run start -w @medical-dict/web",
+    "dev:desktop": "npm run dev -w @medical-dict/desktop",
+    "dist:desktop": "npm run dist -w @medical-dict/desktop",
+    "test": "npm test -w @medical-dict/core",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "allowScripts": {
+    "electron@44.4.5": true,
+    "esbuild@0.28.2": true
+  }
+}

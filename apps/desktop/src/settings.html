@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'" />
+    <title>SonoScribe Settings</title>
+    <link rel="stylesheet" href="ui.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <img src="assets/icon.png" alt="" width="40" height="40" />
+        <div>
+          <h1>SonoScribe</h1>
+          <p class="muted">Dictate reports straight into MS Word, or any other app.</p>
+        </div>
+      </header>
+
+      <section class="howto">
+        <ol>
+          <li>Click in Word where the text should go.</li>
+          <li>Press <kbd id="hk-inline">Ctrl+Shift+Space</kbd> and speak. Text appears as you pause.</li>
+          <li>Press it again to stop.</li>
+        </ol>
+      </section>
+
+      <form id="form">
+        <label class="field">
+          <span>Groq API key <a href="https://console.groq.com/keys" id="groq-link">get one free</a></span>
+          <input id="groqApiKey" type="password" placeholder="gsk_…" autocomplete="off" spellcheck="false" />
+          <small>Free, no card needed. Stays on this computer.</small>
+        </label>
+
+        <label class="field">
+          <span>Dictation shortcut</span>
+          <input id="hotkey" readonly placeholder="Click, then press keys" />
+          <small>Click the box and press the key combination you want (a foot pedal key works too).</small>
+        </label>
+
+        <label class="field">
+          <span>Accent / language</span>
+          <select id="locale">
+            <option value="en-IN">English (India)</option>
+            <option value="en-GB">English (UK)</option>
+            <option value="en-US">English (US)</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Extra words to recognise</span>
+          <textarea id="vocabulary" rows="2" placeholder="e.g. adenomyosis, TIRADS, Dr. Mehrotra"></textarea>
+        </label>
+
+        <label class="field">
+          <span>Quick phrases <small>(one per line, as <code>name: text</code>. Say “insert name”.)</small></span>
+          <textarea id="macros" rows="8" spellcheck="false"></textarea>
+        </label>
+
+        <details>
+          <summary>Advanced</summary>
+          <label class="field">
+            <span>SonoScribe server URL (instead of a key)</span>
+            <input id="serverUrl" placeholder="https://your-app.vercel.app/api/transcribe" spellcheck="false" />
+          </label>
+        </details>
+
+        <label class="check"><input type="checkbox" id="openAtLogin" /> Start SonoScribe when the computer starts</label>
+
+        <div class="actions">
+          <span id="msg" class="muted" role="status"></span>
+          <button type="submit" class="primary">Save</button>
+        </div>
+      </form>
+    </main>
+    <script src="settings.js"></script>
+  </body>
+</html>

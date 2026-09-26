@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' blob:; style-src 'self' 'unsafe-inline'; worker-src blob:" />
+    <style>
+      html, body { margin: 0; background: transparent; overflow: hidden; font-family: "Segoe UI", system-ui, -apple-system, sans-serif; user-select: none; }
+      .pill {
+        display: flex; align-items: center; gap: 10px;
+        margin: 8px; height: 48px; padding: 0 8px 0 14px; border-radius: 24px;
+        background: rgba(23, 33, 43, 0.94); color: #fff; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+      }
+      .dot { width: 12px; height: 12px; border-radius: 50%; background: #2dd4bf; flex: none; }
+      .pill[data-state="listening"] .dot { background: #f04438; animation: pulse 1.4s infinite; }
+      .pill[data-state="busy"] .dot { background: #fdb022; }
+      @keyframes pulse { 50% { opacity: 0.35; } }
+      .text { flex: 1; min-width: 0; }
+      .status { font-size: 14px; font-weight: 600; line-height: 1.2; }
+      .hint { font-size: 11px; opacity: 0.65; }
+      .meter-track { width: 64px; height: 5px; border-radius: 3px; background: rgba(255, 255, 255, 0.15); overflow: hidden; }
+      .meter { height: 100%; background: #2dd4bf; transform-origin: left; transform: scaleX(0); transition: transform 0.1s linear; }
+      button { width: 32px; height: 32px; border-radius: 50%; border: none; background: rgba(255, 255, 255, 0.12); color: #fff; cursor: pointer; display: grid; place-items: center; }
+      button:hover { background: rgba(255, 255, 255, 0.22); }
+    </style>
+  </head>
+  <body>
+    <div class="pill" id="pill" data-state="idle">
+      <span class="dot"></span>
+      <div class="text">
+        <div class="status" id="status">Ready</div>
+        <div class="hint" id="hint"></div>
+      </div>
+      <div class="meter-track"><div class="meter" id="meter"></div></div>
+      <button id="stop" title="Stop dictation" aria-label="Stop dictation">
+        <svg width="12" height="12" viewBox="0 0 12 12"><rect width="12" height="12" rx="2" fill="currentColor" /></svg>
+      </button>
+    </div>
+    <script src="overlay.js"></script>
+  </body>
+</html>
