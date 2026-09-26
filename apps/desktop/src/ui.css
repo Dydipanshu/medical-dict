@@ -1,11 +1,11 @@
 :root {
-  --ink: #17212b; --muted: #6b7682; --line: #dbe1e7; --accent: #0f766e; --bg: #f5f7f9;
+  --ink: #17212b; --muted: #6b7682; --line: #dbe1e7; --accent: #000000; --bg: #f5f7f9;
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif; color: var(--ink);
 }
 @media (prefers-color-scheme: dark) {
-  :root { --ink: #e6eaee; --muted: #9aa5b1; --line: #33404c; --bg: #161d24; --accent: #2dd4bf; }
+  :root { --ink: #e6eaee; --muted: #9aa5b1; --line: #33404c; --bg: #161d24; --accent: #ffffff; }
   input, select, textarea { background: #1e2731; }
-  button.primary { color: #0b1a18; }
+  button.primary { color: #000000; }
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); }

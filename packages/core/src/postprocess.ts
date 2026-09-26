@@ -95,6 +95,22 @@ export function processTranscript(raw: string, opts: ProcessOptions = {}): strin
   );
   for (const c of COMMANDS) t = t.replace(c.re, c.out);
 
+  // Ultrasound compounds that speech models split: "echo texture" -> "echotexture".
+  t = t.replace(/\b(hypo|hyper|iso|an|echo)[\s-]+(echoic|echogenic|echogenicity|texture)\b/gi, (m: string, a: string, b: string) =>
+    a.toLowerCase() === "echo" && !/^(texture|genicity|genic)$/i.test(b) ? m : a + b.toLowerCase(),
+  );
+  t = t.replace(/\becho[\s-]+(genicity|genic)\b/gi, (_m: string, b: string) => "echo" + b.toLowerCase());
+
+  // Speech models often hear "right" as "write" before a body part.
+  t = t.replace(
+    /\bwrite(?=\s+(?:renal|kidney|lobe|ovary|ovarian|adnexa|adnexal|iliac|hypochondrium|lumbar|pleural|testis|testicular|breast|side|lung|hepatic|portal|ureter|ureteric|inguinal|thyroid|lobe|upper|lower|para)\b)/gi,
+    (w: string) => (w[0] === "W" ? "Right" : "right"),
+  );
+
+  // Grades are written in Roman numerals in USG reports: "grade 2 hydronephrosis" -> "grade II".
+  const ROMAN: Record<string, string> = { "1": "I", one: "I", "2": "II", two: "II", "3": "III", three: "III", "4": "IV", four: "IV" };
+  t = t.replace(/\b(grade)\s+(1|2|3|4|one|two|three|four)\b(?!\.\d|\d)/gi, (_, g: string, n: string) => `${g} ${ROMAN[n.toLowerCase()]}`);
+
   // "4 point 5" -> "4.5"
   t = t.replace(/(\d)\s+point\s+(\d)/gi, "$1.$2");
   // Units only after a number (so "grams" in prose is untouched).

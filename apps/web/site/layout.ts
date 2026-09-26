@@ -19,10 +19,9 @@ export interface PageOptions {
 }
 
 const NAV = [
-  { href: "/#how-it-works", label: "How it works" },
   { href: "/usg-report-format", label: "Report formats" },
-  { href: "/#compare", label: "Compare" },
   { href: "/#faq", label: "FAQ" },
+  { href: "/app", label: "Web app" },
 ];
 
 export function page(o: PageOptions): string {
@@ -36,7 +35,7 @@ export function page(o: PageOptions): string {
 <title>${esc(o.title)}</title>
 <meta name="description" content="${esc(o.description)}">
 <link rel="canonical" href="${url}">
-<meta name="theme-color" content="#0F766E">
+<meta name="theme-color" content="#ffffff">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta property="og:type" content="website">
@@ -51,7 +50,7 @@ export function page(o: PageOptions): string {
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@600;700;800&family=Funnel+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
 <link rel="stylesheet" href="/site.css">
 ${ld}
 </head>
@@ -59,11 +58,11 @@ ${ld}
 <a class="skip" href="#main">Skip to content</a>
 <header class="site-head">
   <div class="wrap head-row">
-    <a class="logo" href="/" aria-label="${SITE_NAME} home">${logoMark()}<span>USG<b>Scribe</b></span></a>
+    <a class="logo" href="/" aria-label="${SITE_NAME} home">${logoMark()}<span>USGScribe</span></a>
     <nav aria-label="Main">
       <ul>${NAV.map((n) => `<li><a href="${n.href}">${n.label}</a></li>`).join("")}</ul>
     </nav>
-    <a class="btn btn-small" href="/app">Open the app</a>
+    <a class="btn btn-dark btn-small" href="/download/windows">Download</a>
   </div>
 </header>
 <main id="main">
@@ -71,13 +70,11 @@ ${o.body}
 </main>
 <footer class="site-foot">
   <div class="wrap foot-row">
-    <div>
-      <a class="logo" href="/">${logoMark()}<span>USG<b>Scribe</b></span></a>
-      <p>Voice dictation for ultrasound reports. Made in India for USG clinics.</p>
-    </div>
+    <a class="logo" href="/">${logoMark()}<span>USGScribe</span></a>
+    <p>Voice dictation for ultrasound reports, made for USG clinics in India.</p>
     <ul>
+      <li><a href="/download/windows">Windows app</a></li>
       <li><a href="/app">Web app</a></li>
-      <li><a href="/#download">Windows app</a></li>
       <li><a href="/usg-report-format">USG report formats</a></li>
       <li><a href="/privacy">Privacy</a></li>
     </ul>

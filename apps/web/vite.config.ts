@@ -31,6 +31,8 @@ function site(): Plugin {
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
         const path = (req.url ?? "/").split(/[?#]/)[0];
+        // Match vercel.json: /app serves the app like /app/.
+        if (path === "/app") req.url = "/app/" + (req.url ?? "").slice(4);
         if (path.startsWith("/app") || path.startsWith("/@") || path.startsWith("/src/") || path.startsWith("/node_modules/")) return next();
         const m = (await server.ssrLoadModule("/site/pages.ts")) as SiteModule;
         const all = files(m);

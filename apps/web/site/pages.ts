@@ -9,168 +9,153 @@ const shortName = (h1: string) => {
 
 export const WINDOWS_DOWNLOAD = "/download/windows";
 
-// Spoken input and the text USGScribe writes, taken from the real processing rules.
-const EXAMPLES: [string, string][] = [
-  ["“right kidney measures ten point two by four point five centimetres”", "Right kidney measures <m>10.2 x 4.5 cm</m>"],
-  ["“insert normal liver”", "Liver is normal in size, shape and echotexture. No focal lesion seen. Intrahepatic biliary radicles are not dilated."],
-  ["“FHR one forty two beats per minute”", "FHR <m>142 bpm</m>"],
-  ["“impression colon grade one fatty liver”", "Impression: grade I fatty liver"],
-  ["“calculus open bracket six millimetres close bracket”", "Calculus (<m>6 mm</m>)"],
-  ["<em>Select a __ blank, then say</em> “twelve”", "Normal in calibre (<m>12</m> mm)"],
+// Pairs observed from real transcriptions (and covered by core unit tests).
+const DETAILS: [string, string][] = [
+  ["sixteen point two centimetres", "16.2 cm"],
+  ["ten point four by four point six centimetres", "10.4 x 4.6 cm"],
+  ["grade one fatty liver", "grade I fatty liver"],
+  ["impression colon", "Impression:"],
+  ["insert clinical correlation", "Kindly correlate clinically."],
+  ["insert normal kidneys", "Both kidneys are normal in size, shape, position and echotexture. Corticomedullary differentiation is maintained. No calculus or hydronephrosis seen on either side."],
 ];
 
 const FAQ: [string, string][] = [
   [
+    "How is this different from the Dictate button in Word?",
+    "Word’s Dictate is general-purpose. USGScribe is set up for ultrasound reports: it knows the vocabulary (echotexture, hydronephrosis, BPD, AFI), writes measurements as 10.4 x 4.6 cm, uses Roman numerals for grades, and turns short phrases like “insert normal kidneys” into your full standard sentences.",
+  ],
+  [
     "Does it understand Indian English accents?",
-    "Yes. USGScribe uses Whisper, a speech model trained on millions of hours of speech in many accents, and it is set up for Indian English and British spelling (calibre, oedema, centimetre). There is no voice training step.",
+    "Yes. It uses Whisper, a speech model trained on millions of hours of speech in many accents, set up for Indian English and British spelling. There is no voice training step.",
   ],
   [
-    "Does it work inside MS Word?",
-    "Yes. Install the Windows app, click in your Word report where the text should go, press Ctrl+Shift+Space and speak. The text is typed at your cursor, the same as if you had typed it. It also works in any other program you type into, such as your clinic software.",
-  ],
-  [
-    "Do I need to train it or learn commands?",
-    "No training. Speak normally. A few optional words help: “new line”, “new paragraph”, “full stop”, “comma”, “colon”, and “insert” followed by a phrase name such as “insert normal kidneys”.",
-  ],
-  [
-    "How accurate is it with ultrasound terms?",
-    "It is primed with ultrasound vocabulary: hepatomegaly, cholelithiasis, corticomedullary differentiation, hydronephrosis, BPD, HC, AC, FL, AFI and more. You can add your own words, such as a referring doctor’s name, in settings. Always read the report before signing it.",
+    "Does it work in software other than Word?",
+    "Yes. The Windows app types wherever your cursor is, so it also works in your clinic or hospital software, email and browsers.",
   ],
   [
     "Is it free?",
-    "Yes, USGScribe is free during early access. There is no card to enter and no trial timer.",
+    "Yes, during early access. No card, no sign-up, no trial timer.",
   ],
   [
     "What happens to patient data?",
-    "Reports you write in the web app are saved in your own browser. The Windows app types straight into your Word file. Only the audio of your dictation is sent to our speech service to be turned into text, and USGScribe does not keep it. Read the privacy page for details.",
+    "Reports written in the web app stay in your browser. The Windows app types straight into your document. Only the audio of your dictation is sent to be turned into text, and USGScribe does not store it. Details are on the privacy page.",
   ],
   [
     "Does it need internet?",
-    "Yes. The speech recognition runs on a server, so a normal clinic internet connection is needed while you dictate.",
+    "Yes. Speech recognition runs on a server, so a normal internet connection is needed while you dictate.",
   ],
   [
-    "Does it work on Mac?",
-    "The web app works in Chrome or Edge on any computer. A Mac version of the Word app is in progress.",
+    "Windows says “Windows protected your PC”. Is it safe?",
+    "Windows shows that for new apps that are not yet code-signed. Choose “More info”, then “Run anyway”. The installer comes from USGScribe’s official download page on GitHub.",
+  ],
+  [
+    "Is there a Mac version?",
+    "The web app works in Chrome or Edge on a Mac today. A Mac version of the Word app is in progress.",
   ],
 ];
 
 function landing(): string {
   const body = `
 <section class="hero">
-  <div class="wrap hero-grid">
-    <div class="hero-copy">
-      <h1>Dictate your USG reports instead of typing them.</h1>
-      <p class="lede">Say the findings the way you would tell a colleague. USGScribe writes them into MS Word, or into its own report editor, with measurements formatted and your normal-study sentences one phrase away.</p>
+  <div class="wrap">
+    <h1>Stop typing<br>USG reports.</h1>
+    <div class="hero-sub">
+      <p class="lede">Speak the findings. USGScribe writes them into MS Word or its own report editor, with the ultrasound terms and measurements right.</p>
       <div class="cta-row">
-        <a class="btn" href="/app">Try it free in your browser</a>
-        <a class="btn btn-quiet" href="#download">Get the Word app for Windows</a>
+        <a class="btn btn-dark" href="/download/windows">Download for Windows</a>
+        <a class="btn" href="/app">Try it in the browser</a>
       </div>
-      <p class="fine">Free during early access. No sign-up. Works in Chrome and Edge.</p>
+      <p class="fine">Free during early access. Windows 10 and 11, or Chrome and Edge on any computer.</p>
     </div>
-    ${heroDemo()}
+  </div>
+  <figure class="film wrap">
+    <div class="film-frame">
+      <video id="film" src="/media/app-dictation.webm" poster="/media/app-dictation-poster.jpg" width="1440" height="1080" muted playsinline loop preload="metadata" aria-describedby="film-note">
+        <track kind="captions" src="/media/app-dictation.vtt" srclang="en" label="What the doctor says" default>
+      </video>
+    </div>
+    <figcaption>
+      <p class="said" id="said" aria-hidden="true"></p>
+      <div class="film-meta">
+        <button class="film-toggle" type="button" id="film-toggle" aria-label="Play video">Play</button>
+        <p class="film-note" id="film-note">Unedited recording of the web app at normal speed. The doctor selects the liver finding, speaks, then moves to the impression.</p>
+      </div>
+    </figcaption>
+  </figure>
+</section>
+
+<section class="rate" aria-labelledby="rate-title">
+  <div class="wrap">
+    <h2 id="rate-title" class="sr">Speaking is faster than typing</h2>
+    <p class="rate-line">You speak at <span class="num">150</span> words a minute. You type at <span class="num">52</span>.</p>
+    <p class="source">Averages from the <a href="https://virtualspeech.com/blog/average-speaking-rate-words-per-minute">National Center for Voice and Speech</a> and a <a href="https://userinterfaces.aalto.fi/136Mkeystrokes/">study of 168,000 typists</a> at Aalto University.</p>
   </div>
 </section>
 
-<section class="band" aria-labelledby="say-title">
+<section id="word" class="section" aria-labelledby="word-title">
   <div class="wrap">
-    <h2 id="say-title">It knows how a USG report is written</h2>
-    <p class="section-lede">General dictation writes down every word. USGScribe turns speech into report text: numbers become measurements, spoken punctuation becomes punctuation, and your standard sentences come out in full.</p>
-    <table class="say-table">
-      <thead><tr><th scope="col">You say</th><th scope="col">USGScribe writes</th></tr></thead>
+    <div class="section-intro">
+      <h2 id="word-title">Keep your Word templates.</h2>
+      <p>The Windows app types at your cursor, in MS Word or any other program. Your letterhead, your formats, your printer stay the same.</p>
+    </div>
+    <ol class="steps">
+      <li><span class="step-n">1</span><p>Click where the finding goes.</p></li>
+      <li><span class="step-n">2</span><p>Press <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>Space</kbd> and speak.</p></li>
+      <li><span class="step-n">3</span><p>Press it again to stop. Text appears each time you pause.</p></li>
+    </ol>
+    <figure class="shot">
+      <div class="shot-tabs" role="tablist" aria-label="Word screenshots">
+        <button role="tab" id="tab-listening" aria-selected="false" aria-controls="shot-img" data-src="/media/word-listening.webp" data-alt="MS Word with a KUB report, the cursor after Right kidney, and the USGScribe Listening indicator in the corner.">Before</button>
+        <button role="tab" id="tab-done" aria-selected="true" aria-controls="shot-img" data-src="/media/word-impression.webp" data-alt="The same Word report after dictation: the right kidney finding and the impression have been typed in by USGScribe.">After dictation</button>
+      </div>
+      <img id="shot-img" src="/media/word-impression.webp" width="1920" height="974" loading="lazy" alt="The same Word report after dictation: the right kidney finding and the impression have been typed in by USGScribe.">
+      <figcaption>Screenshots from MS Word 365 on Windows. The right kidney finding and the impression were dictated.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="section section-line" aria-labelledby="details-title">
+  <div class="wrap">
+    <div class="section-intro">
+      <h2 id="details-title">It writes it the way reports are written.</h2>
+      <p>Numbers become measurements, spoken punctuation becomes punctuation, and short phrases become your standard sentences.</p>
+    </div>
+    <table class="details">
+      <thead><tr><th scope="col">You say</th><th scope="col">In the report</th></tr></thead>
       <tbody>
-        ${EXAMPLES.map(([said, out]) => `<tr><td class="said-cell">${said}</td><td class="out-cell">${out.replace(/<m>/g, '<span class="m">').replace(/<\/m>/g, "</span>")}</td></tr>`).join("")}
+        ${DETAILS.map(([said, out]) => `<tr><td>${esc(said)}</td><td>${esc(out)}</td></tr>`).join("")}
       </tbody>
     </table>
   </div>
 </section>
 
-<section id="how-it-works" class="band band-tint" aria-labelledby="how-title">
-  <div class="wrap two-col">
-    <div>
-      <h2 id="how-title">Keep using MS Word</h2>
-      <p class="section-lede">Your letterhead, your formats, your printer. The Windows app sits in the corner of the screen and types wherever your cursor is.</p>
-      <ol class="steps">
-        <li><span class="step-n">1</span><div><h3>Open your report in Word</h3><p>Click where the findings go, the same as you would before typing.</p></div></li>
-        <li><span class="step-n">2</span><div><h3>Press Ctrl+Shift+Space and speak</h3><p>Text appears each time you pause, so you can check it as you go. A foot pedal can be set up as the key.</p></div></li>
-        <li><span class="step-n">3</span><div><h3>Press it again to stop</h3><p>Read through, sign, print. Ctrl+Z in Word undoes anything you want to redo.</p></div></li>
-      </ol>
+<section class="section section-line" aria-labelledby="formats-title">
+  <div class="wrap formats">
+    <div class="section-intro">
+      <h2 id="formats-title">Formats to start from.</h2>
+      <p>Pre-filled with normal findings, so you only dictate what’s different. Each one is free to read and copy.</p>
     </div>
-    <figure class="word-mock" aria-label="MS Word with USGScribe listening">
-      <div class="word-bar"><span></span><span></span><span></span><b>Report - Mrs Sunita Sharma.docx - Word</b></div>
-      <div class="word-page">
-        <p class="wp-title">USG KUB</p>
-        <p><b>Right kidney:</b> Measures <span class="m">10.4 x 4.6 cm</span>. Normal in size and echotexture. A <span class="m">6 mm</span> calculus is seen in the lower pole. No hydronephrosis.</p>
-        <p><b>Left kidney:</b> Measures <span class="m">10.1 x 4.4 cm</span>. Normal in size and echotexture.<span class="caret"></span></p>
-      </div>
-      <div class="pill"><span class="pill-dot"></span><span>Listening…</span><small>Ctrl+Shift+Space to stop</small></div>
-    </figure>
+    <ul class="format-links">
+      ${FORMATS.map((f) => `<li><a href="/usg-report-format/${f.slug}">${esc(shortName(f.h1))}</a></li>`).join("")}
+    </ul>
   </div>
 </section>
 
-<section class="band" aria-labelledby="web-title">
-  <div class="wrap two-col two-col-flip">
-    <div>
-      <h2 id="web-title">Or write the whole report in the browser</h2>
-      <p class="section-lede">No installation. Pick a format, fill in the patient details, dictate, and print on A4 with your clinic’s letterhead, or download it as a Word file.</p>
-      <ul class="plain-list">
-        <li>Ready formats for whole abdomen, KUB, pelvis, early pregnancy, obstetric growth scans and thyroid, pre-filled with normal findings</li>
-        <li>Say “insert normal kidneys” and similar phrases for the sentences you use every day, and add your own</li>
-        <li>Select a blank and speak the value to fill it in</li>
-        <li>Patient name, age and referring doctor can be dictated too</li>
-      </ul>
-      <p><a class="text-link" href="/app">Open the report editor</a></p>
-    </div>
-    <div class="formats-list">
-      <h3>Formats included</h3>
-      <ul>
-        ${FORMATS.map((f) => `<li><a href="/usg-report-format/${f.slug}">${esc(shortName(f.h1))}</a></li>`).join("")}
-      </ul>
-      <p class="fine">Each format is free to read and copy, even without the app.</p>
-    </div>
-  </div>
-</section>
-
-<section id="compare" class="band band-tint" aria-labelledby="compare-title">
-  <div class="wrap">
-    <h2 id="compare-title">How it compares</h2>
-    <p class="section-lede">What USG clinics use today, side by side.</p>
-    <div class="table-scroll">
-      <table class="compare">
-        <thead><tr><th scope="col"><span class="sr">Feature</span></th><th scope="col" class="us">USGScribe</th><th scope="col">Word’s built-in Dictate</th><th scope="col">Dragon Medical One</th><th scope="col">Typing</th></tr></thead>
-        <tbody>
-          <tr><th scope="row">Ultrasound vocabulary</th><td class="us">Built in, plus your own words</td><td>General vocabulary</td><td>Medical vocabulary</td><td>—</td></tr>
-          <tr><th scope="row">“10.2 by 4.5 cm” written as 10.2 x 4.5 cm</th><td class="us">Yes</td><td>No</td><td>With setup</td><td>—</td></tr>
-          <tr><th scope="row">Normal-study sentences by voice</th><td class="us">Yes, ready-made and editable</td><td>No</td><td>Yes, set up per user</td><td>Copy and paste</td></tr>
-          <tr><th scope="row">Works inside MS Word</th><td class="us">Yes, and in other programs</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
-          <tr><th scope="row">USG formats and printing</th><td class="us">Yes, in the web app</td><td>No</td><td>No</td><td>Your own</td></tr>
-          <tr><th scope="row">Voice training needed</th><td class="us">No</td><td>No</td><td>No</td><td>—</td></tr>
-          <tr><th scope="row">Price</th><td class="us">Free during early access</td><td>Included with Microsoft 365</td><td>About US$79–99 per user per month, plus setup</td><td>Your time</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="fine">Dragon Medical One pricing from public 2026 price listings; check with the vendor for current rates.</p>
-  </div>
-</section>
-
-<section id="download" class="band" aria-labelledby="download-title">
-  <div class="wrap download">
-    <div>
-      <h2 id="download-title">Get started in two minutes</h2>
-      <p class="section-lede">Try it in the browser first. When you are happy, install the Windows app to dictate into Word.</p>
-    </div>
-    <div class="download-actions">
-      <a class="btn" href="/app">Open the web app</a>
-      <a class="btn btn-quiet" href="${WINDOWS_DOWNLOAD}">Download for Windows</a>
-      <p class="fine">Windows 10 and 11. Windows may show a “Windows protected your PC” notice while the app is new: choose “More info”, then “Run anyway”.</p>
-    </div>
-  </div>
-</section>
-
-<section id="faq" class="band band-tint" aria-labelledby="faq-title">
-  <div class="wrap narrow">
-    <h2 id="faq-title">Questions doctors ask</h2>
+<section id="faq" class="section section-line" aria-labelledby="faq-title">
+  <div class="wrap faq-wrap">
+    <h2 id="faq-title">Questions</h2>
     <div class="faq">
       ${FAQ.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}
+    </div>
+  </div>
+</section>
+
+<section class="closing">
+  <div class="wrap">
+    <p class="closing-line">Dictate your next report.</p>
+    <div class="cta-row">
+      <a class="btn btn-light" href="/download/windows">Download for Windows</a>
+      <a class="btn btn-outline-light" href="/app">Try it in the browser</a>
     </div>
   </div>
 </section>
@@ -179,7 +164,7 @@ function landing(): string {
     path: "/",
     title: "USGScribe – Voice Dictation for Ultrasound (USG) Reports in MS Word",
     description:
-      "Dictate ultrasound reports instead of typing. USGScribe understands USG terms, formats measurements and types into MS Word. Free USG report formats for abdomen, KUB, obstetric and thyroid scans.",
+      "Stop typing USG reports. Speak the findings and USGScribe writes them into MS Word or its own editor, with ultrasound terms and measurements right. Free during early access.",
     body,
     jsonLd: [
       {
@@ -194,34 +179,20 @@ function landing(): string {
       },
       {
         "@context": "https://schema.org",
+        "@type": "VideoObject",
+        name: "Dictating an ultrasound report with USGScribe",
+        description: "Unedited recording of a whole-abdomen report being dictated in the USGScribe web app.",
+        thumbnailUrl: siteUrl() + "/media/app-dictation-poster.jpg",
+        contentUrl: siteUrl() + "/media/app-dictation.webm",
+        uploadDate: "2026-09-26",
+      },
+      {
+        "@context": "https://schema.org",
         "@type": "FAQPage",
         mainEntity: FAQ.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })),
       },
     ],
   });
-}
-
-function heroDemo(): string {
-  // Final state is in the HTML (readable without JavaScript and by search engines);
-  // site.js replays it as a typing animation.
-  return `
-<figure class="demo" aria-label="Example: a doctor’s spoken words becoming report text">
-  <div class="voice" aria-hidden="true">
-    <span class="voice-dot"></span>
-    <p class="voice-said" id="demo-said">right renal calculus full stop</p>
-  </div>
-  <div class="sheet">
-    <div class="sheet-head">
-      <p class="sheet-clinic">Sunrise Imaging Centre</p>
-      <p class="sheet-meta">Mrs Sunita Sharma, 42 Y / F. Ref: Dr R. Mehta</p>
-    </div>
-    <p class="sheet-title">USG WHOLE ABDOMEN</p>
-    <p><b>Liver:</b> <span data-step="0">Normal in size, measuring <span class="m">14.5 cm</span>. No focal lesion.</span></p>
-    <p><b>Gall bladder:</b> <span data-step="1">Well distended. Wall thickness is normal. No calculus or sludge seen within.</span></p>
-    <p><b>Right kidney:</b> <span data-step="2">Measures <span class="m">10.2 x 4.5 cm</span>. A <span class="m">6 mm</span> calculus is seen in the lower pole.</span></p>
-    <p><b>Impression:</b> <span data-step="3">Right renal calculus.</span></p>
-  </div>
-</figure>`;
 }
 
 function formatsIndex(): string {
@@ -264,14 +235,14 @@ function formatPage(slug: string): string {
         ${html}
       </div>
       <div class="cta-row">
-        <a class="btn" href="/app#/new/${t.id}">Dictate this report in USGScribe</a>
-        <button class="btn btn-quiet" type="button" data-copy="#format-text">Copy the format</button>
+        <a class="btn btn-dark" href="/app#/new/${t.id}">Dictate this report in USGScribe</a>
+        <button class="btn" type="button" data-copy="#format-text">Copy the format</button>
       </div>
       <p class="fine">This is a normal-study starting point. Edit it to match your findings and your clinic’s style, and always review before signing.</p>
     </div>
     <aside class="format-side">
       <h2>Dictate it instead</h2>
-      <p>Open this format in USGScribe, click a line and speak. Say “insert normal kidneys” for the full normal sentence, or “ten point two by four point five centimetres” to get 10.2 x 4.5 cm.</p>
+      <p>Open this format in USGScribe, click a line and speak. Say “insert normal kidneys” for the full normal sentence, or “ten point two by four point five centimetres” to get 10.2&nbsp;x&nbsp;4.5&nbsp;cm.</p>
       <h2>Other formats</h2>
       <ul>${others.map((o) => `<li><a href="/usg-report-format/${o.slug}">${esc(shortName(o.h1))}</a></li>`).join("")}</ul>
     </aside>

@@ -84,7 +84,8 @@ function positionOverlay() {
   const display = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
   const { x, y, width, height } = display.workArea;
   const [w, h] = overlay.getSize();
-  overlay.setPosition(Math.round(x + (width - w) / 2), Math.round(y + height - h - 24));
+  // Bottom-right: over the margin, not the middle of the page the doctor is writing on.
+  overlay.setPosition(Math.round(x + width - w - 24), Math.round(y + height - h - 20));
 }
 
 function createTray() {

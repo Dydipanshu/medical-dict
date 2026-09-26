@@ -1,8 +1,16 @@
 import { useState } from "react";
-import { FileText, Mic, Plus, Settings as Cog, Trash2 } from "lucide-react";
+import { Search, Settings as Cog, Trash2 } from "lucide-react";
 import { TEMPLATES } from "@medical-dict/core";
-import { APP_NAME, deleteReport, loadReports, newReport, saveReport, type Settings } from "./storage";
+import { deleteReport, loadReports, newReport, saveReport, type Settings } from "./storage";
 import { navigate } from "./nav";
+import { Logo } from "./Logo";
+
+function when(ts: number): string {
+  const d = new Date(ts);
+  const today = new Date();
+  if (d.toDateString() === today.toDateString()) return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  return d.toLocaleDateString([], { day: "numeric", month: "short" });
+}
 
 export function ReportList({ settings }: { settings: Settings }) {
   const [reports, setReports] = useState(loadReports);
@@ -27,58 +35,76 @@ export function ReportList({ settings }: { settings: Settings }) {
 
   return (
     <div className="home">
-      <header className="topbar">
-        <a className="brand" href="/" title="USGScribe home">
-          <span className="brand-mark">
-            <Mic size={18} />
-          </span>
-          <span>{APP_NAME}</span>
-          <span className="brand-clinic">{settings.clinicName}</span>
+      <header className="bar">
+        <a className="brand" href="/" title="USGScribe website">
+          <Logo />
         </a>
-        <button className="btn ghost" onClick={() => navigate("settings")}>
-          <Cog size={16} /> Settings
-        </button>
+        <span className="bar-clinic">{settings.clinicName}</span>
+        <div className="bar-actions">
+          <button className="ghost-btn" onClick={() => navigate("settings")} aria-label="Settings" title="Settings">
+            <Cog size={18} />
+          </button>
+        </div>
       </header>
 
       <main className="home-main">
-        <section>
-          <h1 className="home-title">New report</h1>
-          <p className="muted">Pick a template, then just speak. Press <kbd>F2</kbd> to start and stop dictation.</p>
-          <div className="template-grid">
+        <section className="new-report" aria-labelledby="new-title">
+          <h1 id="new-title">New report</h1>
+          <p className="muted">Choose a format. Press F2 in the report to start dictating.</p>
+          <ul className="template-list">
             {TEMPLATES.map((t) => (
-              <button key={t.id} className="template-card" onClick={() => create(t.id)}>
-                <span className="template-icon">{t.id === "blank" ? <Plus size={18} /> : <FileText size={18} />}</span>
-                <span className="template-name">{t.name}</span>
-                <span className="template-sub">{t.title}</span>
-              </button>
+              <li key={t.id}>
+                <button onClick={() => create(t.id)}>
+                  <span className="t-name">{t.name}</span>
+                </button>
+              </li>
             ))}
-          </div>
+          </ul>
         </section>
 
-        <section>
-          <div className="section-head">
-            <h2>Recent reports</h2>
+        <section className="recent" aria-labelledby="recent-title">
+          <div className="recent-head">
+            <h2 id="recent-title">Recent</h2>
             {reports.length > 0 && (
-              <input className="search" placeholder="Search patient or ID" value={query} onChange={(e) => setQuery(e.target.value)} />
+              <label className="search">
+                <Search size={16} aria-hidden />
+                <input placeholder="Patient name or ID" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Search reports" />
+              </label>
             )}
           </div>
           {reports.length === 0 ? (
-            <p className="empty">No reports yet. They're saved in this browser as you type.</p>
+            <p className="empty">Reports you write are saved here, in this browser. Print or download the ones you need to keep.</p>
+          ) : shown.length === 0 ? (
+            <p className="empty">No report matches “{query}”.</p>
           ) : (
-            <ul className="report-list">
-              {shown.map((r) => (
-                <li key={r.id}>
-                  <a href={`#/report/${r.id}`} className="report-row">
-                    <span className="report-patient">{r.patient.name || "Unnamed patient"}</span>
-                    <span className="report-type">{r.title}</span>
-                    <span className="report-date">{r.patient.date}</span>
-                  </a>
-                  <button className="icon-btn" aria-label="Delete report" onClick={() => remove(r.id)}>
-                    <Trash2 size={16} />
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <table className="report-table">
+              <thead>
+                <tr>
+                  <th scope="col">Patient</th>
+                  <th scope="col">Scan</th>
+                  <th scope="col">Edited</th>
+                  <th scope="col">
+                    <span className="sr">Delete</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {shown.map((r) => (
+                  <tr key={r.id}>
+                    <td>
+                      <a href={`#/report/${r.id}`}>{r.patient.name || "Untitled patient"}</a>
+                    </td>
+                    <td className="muted">{r.title}</td>
+                    <td className="muted num">{when(r.updatedAt)}</td>
+                    <td className="row-actions">
+                      <button className="ghost-btn" aria-label={`Delete report for ${r.patient.name || "untitled patient"}`} onClick={() => remove(r.id)}>
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
         </section>
       </main>

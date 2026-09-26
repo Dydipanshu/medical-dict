@@ -62,28 +62,37 @@ export class DictationRecorder {
 
   async start(): Promise<void> {
     if (this.ctx) return;
-    this.stream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        deviceId: this.opts.deviceId ? { exact: this.opts.deviceId } : undefined,
-        channelCount: 1,
-        echoCancellation: true,
-        noiseSuppression: true,
-        autoGainControl: true,
-      },
-    });
+    // Build the audio pipeline before opening the mic, so the first words
+    // spoken after the mic opens are not lost while the worklet loads.
     // Chromium resamples the mic to the context rate for us.
     const ctx = new AudioContext({ sampleRate: SAMPLE_RATE });
     const url = URL.createObjectURL(new Blob([WORKLET], { type: "application/javascript" }));
-    await ctx.audioWorklet.addModule(url);
-    URL.revokeObjectURL(url);
-    const src = ctx.createMediaStreamSource(this.stream);
+    try {
+      await ctx.audioWorklet.addModule(url);
+    } finally {
+      URL.revokeObjectURL(url);
+    }
     const node = new AudioWorkletNode(ctx, "tap");
     node.port.onmessage = (e: MessageEvent<Float32Array>) => this.onFrame(e.data);
-    src.connect(node);
     // Worklets only run when connected to the graph; route to a muted sink.
     const mute = ctx.createGain();
     mute.gain.value = 0;
     node.connect(mute).connect(ctx.destination);
+    try {
+      this.stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          deviceId: this.opts.deviceId ? { exact: this.opts.deviceId } : undefined,
+          channelCount: 1,
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+      });
+    } catch (e) {
+      await ctx.close();
+      throw e;
+    }
+    ctx.createMediaStreamSource(this.stream).connect(node);
     this.ctx = ctx;
     this.node = node;
   }

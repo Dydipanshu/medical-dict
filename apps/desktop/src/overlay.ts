@@ -24,6 +24,7 @@ const AUTO_STOP_MS = 90_000; // stop if nobody speaks for this long
 let settings: DesktopSettings;
 let recorder: DictationRecorder | undefined;
 let listening = false;
+let starting = false;
 let busy = false;
 let typedSoFar = "";
 let lastSpeech = 0;
@@ -53,14 +54,16 @@ const queue = new TranscriptionQueue(
 );
 
 function render(level = 0) {
-  pill.dataset.state = listening ? "listening" : busy ? "busy" : "idle";
-  status.textContent = listening ? "Listening…" : busy ? "Typing…" : "Done";
+  pill.dataset.state = listening ? "listening" : busy || starting ? "busy" : "idle";
+  status.textContent = starting ? "Starting mic…" : listening ? "Listening…" : busy ? "Typing…" : "Done";
   meter.style.transform = `scaleX(${listening ? Math.max(0.04, level) : 0})`;
 }
 
 async function startDictation() {
   if (listening) return;
   typedSoFar = "";
+  starting = true;
+  render();
   sono.setState("starting");
   recorder = new DictationRecorder({
     onSegment: (pcm) => queue.push(pcm),
@@ -72,11 +75,13 @@ async function startDictation() {
   try {
     await recorder.start();
   } catch (e) {
+    starting = false;
     recorder = undefined;
     sono.setState("idle");
     sono.error(`Microphone unavailable: ${(e as Error).message}`);
     return;
   }
+  starting = false;
   listening = true;
   lastSpeech = Date.now();
   render();

@@ -70,6 +70,11 @@ export function ReportEditor({ id, settings }: { id: string; settings: Settings 
     ],
     content: report?.html ?? "",
     autofocus: "end",
+    // Keep the cursor clear of the sticky toolbar and the floating record bar.
+    editorProps: {
+      scrollThreshold: { top: 130, bottom: 150, left: 0, right: 0 },
+      scrollMargin: { top: 150, bottom: 170, left: 0, right: 0 },
+    },
     onUpdate: ({ editor }) => {
       setReport((r) => (r ? { ...r, html: editor.getHTML() } : r));
       scheduleSave();
@@ -136,136 +141,159 @@ export function ReportEditor({ id, settings }: { id: string; settings: Settings 
 
   const insertMacro = (text: string) => editor && insertDictation(editor, text, []);
 
+  const title = report.patient.name.trim() || "Untitled patient";
+
   return (
     <div className="editor-page">
-      <header className="topbar no-print">
-        <div className="topbar-left">
-          <button className="btn ghost" onClick={() => navigate("")}>
-            <ArrowLeft size={16} /> Reports
-          </button>
-          <span className="save-state">{saved ? "Saved" : "Saving…"}</span>
+      <header className="bar no-print">
+        <button className="ghost-btn" onClick={() => navigate("")} aria-label="All reports">
+          <ArrowLeft size={18} />
+        </button>
+        <div className="bar-title">
+          <span className="bar-name">{title}</span>
+          <span className="bar-sub">
+            <span>{report.title}</span>
+            <span className={saved ? "save-ok" : "save-pending"}>{saved ? "Saved" : "Saving…"}</span>
+          </span>
         </div>
-        <div className="topbar-right">
+        <div className="bar-actions">
           <button className="btn" onClick={async () => editor && (await import("./exportDocx")).exportDocx(report, editor.getJSON(), settings)}>
-            <Download size={16} /> Word (.docx)
+            <Download size={16} /> Word file
           </button>
-          <button className="btn primary" onClick={() => window.print()}>
+          <button className="btn btn-dark" onClick={() => window.print()}>
             <Printer size={16} /> Print
           </button>
         </div>
       </header>
 
-      <div className="workspace">
-        <div className="paper-column">
-          {editor && <Toolbar editor={editor} />}
-          <article className="paper">
-            <header className="letterhead">
-              <div className="clinic-name">{settings.clinicName}</div>
-              <div className="clinic-line">{settings.clinicAddress}</div>
-              <div className="clinic-line">{settings.clinicContact}</div>
-            </header>
+      {editor && <Toolbar editor={editor} />}
 
-            <section className="patient-grid">
-              {PATIENT_FIELDS.map((f) => (
-                <label key={f.key} className={f.wide ? "wide" : ""}>
-                  <span>{f.label}</span>
-                  <input
-                    data-dictate={f.key}
-                    value={report.patient[f.key]}
-                    onChange={(e) => setPatient(f.key, e.target.value)}
-                  />
-                </label>
-              ))}
-            </section>
+      <main className="canvas">
+        <article className="paper">
+          <header className="letterhead">
+            <div className="clinic-name">{settings.clinicName}</div>
+            <div className="clinic-line">{settings.clinicAddress}</div>
+            <div className="clinic-line">{settings.clinicContact}</div>
+          </header>
 
-            <input className="report-title" data-dictate="title" value={report.title} onChange={(e) => update({ title: e.target.value })} />
+          <section className="patient-grid">
+            {PATIENT_FIELDS.map((f) => (
+              <label key={f.key} className={f.wide ? "wide" : ""}>
+                <span>{f.label}</span>
+                <input data-dictate={f.key} value={report.patient[f.key]} onChange={(e) => setPatient(f.key, e.target.value)} />
+              </label>
+            ))}
+          </section>
 
-            <EditorContent editor={editor} className="report-body" />
+          <input className="report-title" data-dictate="title" value={report.title} onChange={(e) => update({ title: e.target.value })} />
 
-            <footer className="signature">
-              <div className="sig-name">{settings.doctorName}</div>
-              <div className="sig-qual">{settings.doctorQualification}</div>
-            </footer>
-          </article>
-        </div>
+          <EditorContent editor={editor} className="report-body" />
 
-        <aside className="side no-print">
-          <DictationCard dictation={dictation} />
+          <footer className="signature">
+            <div className="sig-name">{settings.doctorName}</div>
+            <div className="sig-qual">{settings.doctorQualification}</div>
+          </footer>
+        </article>
+      </main>
 
-          <div className="card">
-            <h3>Quick phrases</h3>
-            <p className="hint">
-              Say <em>“insert normal liver”</em> or click:
-            </p>
-            <div className="chips">
-              {settings.macros.map((m) => (
-                <button key={m.name} className="chip" onMouseDown={(e) => e.preventDefault()} onClick={() => insertMacro(m.text)} title={m.text}>
-                  {m.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="card commands-card">
-            <h3>Voice commands</h3>
-            <dl className="commands">
-              <dt>“new line”</dt>
-              <dd>next line</dd>
-              <dt>“new paragraph”</dt>
-              <dd>blank line</dd>
-              <dt>“full stop” / “comma”</dt>
-              <dd>. ,</dd>
-              <dt>“colon” / “open bracket”</dt>
-              <dd>: (</dd>
-              <dt>“4.5 by 3.2 centimetres”</dt>
-              <dd>4.5 x 3.2 cm</dd>
-            </dl>
-            <p className="hint">Tip: select a “__” blank, then speak the value to fill it in. Ctrl+Z undoes the last dictation.</p>
-          </div>
-        </aside>
-      </div>
+      <RecBar dictation={dictation} macros={settings.macros} onPhrase={insertMacro} />
     </div>
   );
 }
 
-function DictationCard({ dictation: d }: { dictation: ReturnType<typeof useDictation> }) {
+type Dictation = ReturnType<typeof useDictation>;
+
+/** Floating record bar: the web app's version of the desktop app's "Listening" pill. */
+function RecBar({ dictation: d, macros, onPhrase }: { dictation: Dictation; macros: Settings["macros"]; onPhrase: (text: string) => void }) {
+  const [panel, setPanel] = useState<"none" | "phrases" | "commands">("none");
   const listening = d.state === "listening";
-  const engineLabel =
-    d.engine === "whisper" ? "Whisper (high accuracy)" : d.engine === "browser" ? "Browser speech (basic)" : d.engine === "none" ? "Not available" : "…";
+  const starting = d.state === "starting";
+  const toggle = (p: "phrases" | "commands") => setPanel((cur) => (cur === p ? "none" : p));
+
+  useEffect(() => {
+    if (panel === "none") return;
+    const close = (e: KeyboardEvent) => e.key === "Escape" && setPanel("none");
+    window.addEventListener("keydown", close);
+    return () => window.removeEventListener("keydown", close);
+  }, [panel]);
+
+  let status: string;
+  if (d.error) status = d.error;
+  else if (starting) status = "Starting microphone…";
+  else if (listening) status = d.interim || (d.busy ? "Writing…" : "Listening. Pause to see text.");
+  else if (d.busy) status = "Writing…";
+  else status = "Press F2 or click to dictate";
+
   return (
-    <div className={`card dictation ${listening ? "on" : ""}`}>
-      <button
-        className="mic"
-        onMouseDown={(e) => e.preventDefault()}
-        onClick={() => void d.toggle()}
-        disabled={d.state === "starting" || !d.engine}
-        aria-label={listening ? "Stop dictation" : "Start dictation"}
-      >
-        {d.state === "starting" ? <Loader2 className="spin" size={30} /> : listening ? <Square size={26} /> : <Mic size={30} />}
-      </button>
-      <div className="dictation-text">
-        <div className="dictation-status">{listening ? "Listening…" : "Click or press F2 to dictate"}</div>
-        <div className="meter" aria-hidden>
-          <div className="meter-fill" style={{ transform: `scaleX(${listening ? Math.max(0.03, d.level) : 0})` }} />
-        </div>
-        <div className="engine">
-          {engineLabel}
-          {d.busy && (
-            <span className="busy">
-              <Loader2 className="spin" size={12} /> writing…
-            </span>
+    <div className="rec-dock no-print">
+      {panel !== "none" && (
+        <div className="rec-panel" role="dialog" aria-label={panel === "phrases" ? "Quick phrases" : "Voice commands"}>
+          {panel === "phrases" ? (
+            <>
+              <p className="rec-panel-hint">
+                Say “insert” and the name, or click one. Edit them in Settings.
+              </p>
+              <ul className="phrase-list">
+                {macros.map((m) => (
+                  <li key={m.name}>
+                    <button onMouseDown={(e) => e.preventDefault()} onClick={() => onPhrase(m.text)} title={m.text}>
+                      <span className="phrase-name">{m.name}</span>
+                      <span className="phrase-text">{m.text}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <dl className="commands">
+              <dt>new line</dt>
+              <dd>Starts the next line</dd>
+              <dt>new paragraph</dt>
+              <dd>Leaves a blank line</dd>
+              <dt>full stop, comma, colon</dt>
+              <dd>. , :</dd>
+              <dt>open bracket, close bracket</dt>
+              <dd>( )</dd>
+              <dt>10.2 by 4.5 centimetres</dt>
+              <dd>10.2 x 4.5 cm</dd>
+              <dt>insert normal liver</dt>
+              <dd>The full normal-liver sentence</dd>
+              <dt>Select a __ and speak</dt>
+              <dd>Fills in the blank</dd>
+            </dl>
           )}
         </div>
-      </div>
-      {d.interim && <p className="interim">{d.interim}</p>}
-      {d.error && (
-        <p className="error" role="alert">
-          {d.error}{" "}
-          <button className="linklike" onClick={d.clearError}>
-            dismiss
-          </button>
-        </p>
       )}
+      <div className={`rec-bar ${listening ? "is-on" : ""} ${d.error ? "has-error" : ""}`}>
+        <button
+          className="rec-btn"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => void d.toggle()}
+          aria-label={listening || starting ? "Stop dictation" : "Start dictation"}
+          aria-pressed={listening}
+        >
+          {starting ? <Loader2 className="spin" size={18} /> : listening ? <Square size={14} fill="currentColor" /> : <Mic size={18} />}
+        </button>
+        <div className="rec-status" aria-live="polite">
+          <span className={d.interim ? "rec-interim" : ""}>{status}</span>
+          {d.error && (
+            <button className="linklike" onClick={d.clearError}>
+              Dismiss
+            </button>
+          )}
+        </div>
+        <div className="rec-meter" aria-hidden>
+          <span style={{ transform: `scaleX(${listening ? Math.max(0.04, d.level) : 0})` }} />
+        </div>
+        <div className="rec-tools">
+          <button className={panel === "phrases" ? "on" : ""} onMouseDown={(e) => e.preventDefault()} onClick={() => toggle("phrases")}>
+            Phrases
+          </button>
+          <button className={panel === "commands" ? "on" : ""} onMouseDown={(e) => e.preventDefault()} onClick={() => toggle("commands")}>
+            Commands
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -291,7 +319,7 @@ function Toolbar({ editor }: { editor: Editor }) {
   );
   const c = () => editor.chain().focus();
   return (
-    <div className="toolbar no-print">
+    <div className="toolbar no-print" role="toolbar" aria-label="Formatting">
       {b("Undo", false, () => c().undo().run(), <Undo2 size={16} />, !s.canUndo)}
       {b("Redo", false, () => c().redo().run(), <Redo2 size={16} />, !s.canRedo)}
       <span className="sep" />

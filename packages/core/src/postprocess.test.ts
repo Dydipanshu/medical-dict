@@ -71,3 +71,25 @@ test("segment starting with spoken punctuation after punctuation", () => {
   assert.equal(joinWithContext(". Spleen normal.", "Liver is enlarged"), ". Spleen normal.");
   assert.equal(joinWithContext(".", "Liver normal."), "");
 });
+
+test("grades in Roman numerals", () => {
+  assert.equal(p("Grade 1 fatty liver"), "Grade I fatty liver");
+  assert.equal(p("grade two hydronephrosis"), "Grade II hydronephrosis");
+  assert.equal(p("placenta posterior, grade 3."), "Placenta posterior, grade III.");
+  assert.equal(p("grade I fatty liver"), "Grade I fatty liver");
+  assert.equal(p("grade 2.5"), "Grade 2.5");
+});
+
+test("'write' misheard for 'right' before anatomy", () => {
+  assert.equal(p("Write renal calculus of 6 mm."), "Right renal calculus of 6 mm.");
+  assert.equal(p("calculus in the write kidney"), "Calculus in the write kidney".replace("write", "right"));
+  assert.equal(p("please write the report"), "Please write the report");
+});
+
+test("split ultrasound compounds are joined", () => {
+  assert.equal(p("normal in size and echo texture"), "Normal in size and echotexture");
+  assert.equal(p("a hypo echoic lesion"), "A hypoechoic lesion");
+  assert.equal(p("An echoic cyst"), "Anechoic cyst");
+  assert.equal(p("increased echo genicity"), "Increased echogenicity");
+  assert.equal(p("an echo was heard"), "An echo was heard");
+});
