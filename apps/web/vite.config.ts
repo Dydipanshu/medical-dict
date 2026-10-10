@@ -1,17 +1,20 @@
 import { defineConfig, loadEnv, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
-import { GET, POST } from "./api/transcribe.ts";
+import * as transcribe from "./api/transcribe.ts";
+import * as structure from "./api/structure.ts";
 import { sendWebResponse, toWebRequest } from "./server.ts";
 
-// Serves /api/transcribe during `vite dev` with the same handler as production.
+// Serves /api/transcribe and /api/structure during `vite dev` with the same handlers as production.
 function api(): Plugin {
   return {
     name: "api",
     configureServer(server) {
-      server.middlewares.use("/api/transcribe", async (req, res) => {
-        const handler = req.method === "POST" ? POST : GET;
-        await sendWebResponse(res, await handler(await toWebRequest(req)));
-      });
+      for (const [path, api] of [["/api/transcribe", transcribe], ["/api/structure", structure]] as const) {
+        server.middlewares.use(path, async (req, res) => {
+          const handler = req.method === "POST" ? api.POST : api.GET;
+          await sendWebResponse(res, await handler(await toWebRequest(req)));
+        });
+      }
     },
   };
 }
@@ -51,7 +54,7 @@ function site(): Plugin {
 }
 
 export default defineConfig(({ mode }) => {
-  // Accept GROQ_API_KEY / SITE_URL from apps/web/.env or the repo-root .env.
+  // Accept GROQ_API_KEY / ANTHROPIC_API_KEY / SITE_URL from apps/web/.env or the repo-root .env.
   Object.assign(process.env, loadEnv(mode, "../..", ""), loadEnv(mode, ".", ""));
   return {
     appType: "mpa",

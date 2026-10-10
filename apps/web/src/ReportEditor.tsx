@@ -20,6 +20,7 @@ import {
   Square,
   Underline,
   Undo2,
+  WandSparkles,
 } from "lucide-react";
 import { joinWithContext, pcpndtDeclaration, processTranscript } from "@medical-dict/core";
 import { FindingLabel } from "./findingLabel";
@@ -27,6 +28,8 @@ import { loadReports, saveReport, type Patient, type Report, type Settings } fro
 import { useDictation } from "./useDictation";
 import { insertDictation } from "./insert";
 import { navigate } from "./nav";
+import { StructurePanel } from "./StructurePanel";
+import { aiAvailable } from "./structure";
 
 /** How many "__" blanks are still in the report. */
 function countBlanks(html: string): number {
@@ -36,6 +39,8 @@ function countBlanks(html: string): number {
 export function ReportEditor({ id, settings }: { id: string; settings: Settings }) {
   const [report, setReport] = useState<Report | undefined>(() => loadReports().find((r) => r.id === id));
   const [saved, setSaved] = useState(true);
+  const [canStructure, setCanStructure] = useState(false);
+  const [structuring, setStructuring] = useState(false);
   const saveTimer = useRef<number>(undefined);
   const reportRef = useRef(report);
   reportRef.current = report;
@@ -114,6 +119,14 @@ export function ReportEditor({ id, settings }: { id: string; settings: Settings 
   const dictation = useDictation(settings, onText);
 
   useEffect(() => {
+    let live = true;
+    void aiAvailable().then((ok) => live && setCanStructure(ok));
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "F2") {
         e.preventDefault();
@@ -165,6 +178,19 @@ export function ReportEditor({ id, settings }: { id: string; settings: Settings 
           </span>
         </div>
         <div className="bar-actions">
+          {canStructure && editor && (
+            <button
+              className="btn"
+              onClick={() => {
+                if (dictation.state !== "idle") void dictation.stop();
+                setStructuring(true);
+              }}
+              title="Move your dictation into the right lines and write the impression"
+              aria-label="Structure report"
+            >
+              <WandSparkles size={16} /> <span className="hide-sm">Structure</span>
+            </button>
+          )}
           <button className="btn" onClick={async () => editor && (await import("./exportDocx")).exportDocx(report, editor.getJSON(), settings)}>
             <Download size={16} /> Word file
           </button>
@@ -237,6 +263,9 @@ export function ReportEditor({ id, settings }: { id: string; settings: Settings 
       </main>
 
       <RecBar dictation={dictation} macros={settings.macros} onPhrase={insertMacro} />
+      {structuring && editor && (
+        <StructurePanel editor={editor} title={report.title} templateId={report.templateId} onClose={() => setStructuring(false)} />
+      )}
     </div>
   );
 }

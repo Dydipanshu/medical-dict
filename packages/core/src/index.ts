@@ -4,3 +4,4 @@ export * from "./templates.ts";
 export * from "./prompt.ts";
 export * from "./recorder.ts";
 export * from "./transcribe.ts";
+export * from "./structure.ts";

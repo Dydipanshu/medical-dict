@@ -1,10 +1,11 @@
-// Production server: serves the built app from dist/ plus /api/transcribe.
+// Production server: serves the built app from dist/ plus /api/transcribe and /api/structure.
 // Usage: npm run build && GROQ_API_KEY=... npm start
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { readFile, stat } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
-import { GET, POST } from "./api/transcribe.ts";
+import * as transcribe from "./api/transcribe.ts";
+import * as structure from "./api/structure.ts";
 
 const DIST = join(fileURLToPath(new URL(".", import.meta.url)), "dist");
 const PORT = Number(process.env.PORT ?? 3000);
@@ -75,8 +76,9 @@ function loadDotEnv() {
 if (import.meta.url === `file://${process.argv[1]}`) {
   createServer(async (req, res) => {
     try {
-      if (req.url?.startsWith("/api/transcribe")) {
-        const handler = req.method === "POST" ? POST : GET;
+      const api = req.url?.startsWith("/api/transcribe") ? transcribe : req.url?.startsWith("/api/structure") ? structure : null;
+      if (api) {
+        const handler = req.method === "POST" ? api.POST : api.GET;
         return await sendWebResponse(res, await handler(await toWebRequest(req)));
       }
       await serveStatic(req.url ?? "/", res);

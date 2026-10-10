@@ -28,6 +28,21 @@ packages/core  Shared: mic capture + pause detection, Whisper client, voice comm
 4. The web app inserts the text at the cursor. The desktop app pastes it into the focused window
    and then restores the user's clipboard.
 
+## Structure report (AI)
+
+In the web editor, the doctor can dictate findings anywhere and press **Structure**. Claude
+(`claude-sonnet-5-5` by default, `STRUCTURE_MODEL` to change it) moves each finding into the
+right organ line, fills blanks with the dictated measurements, and drafts the impression.
+
+- Only the report body is sent, through `api/structure.ts`. The patient details at the top are not.
+- The answer is checked in the browser by `checkStructured()` in `packages/core/src/structure.ts`
+  before the doctor sees it. A line with a number that was never dictated is reverted. A dictated
+  number missing from the result, a lost organ line or an unknown label raises a warning.
+- Nothing changes until the doctor reviews the result and presses Apply. Ctrl+Z undoes it.
+- The button only appears when `ANTHROPIC_API_KEY` is set on the server.
+- `node --experimental-strip-types apps/web/scripts/eval-structure.ts` runs six realistic
+  dictations against the real model and checks the output.
+
 ## Setup
 
 ```bash

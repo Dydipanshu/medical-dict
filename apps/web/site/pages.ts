@@ -39,7 +39,7 @@ const FAQ: [string, string][] = [
   ],
   [
     "What happens to patient data?",
-    "Reports written in the web app stay in your browser. The Windows app types straight into your document. Only the audio of your dictation is sent to be turned into text, and USGScribe does not store it. Details are on the privacy page.",
+    "Reports written in the web app stay in your browser. The Windows app types straight into your document. Only the audio of your dictation is sent to be turned into text, and USGScribe does not store it. If you press Structure, the report text (not the patient details at the top) is sent to an AI model to be organised. Details are on the privacy page.",
   ],
   [
     "Does it need internet?",
@@ -278,6 +278,8 @@ function privacy(): string {
     <p>The Windows app types into your document, such as your MS Word file. It does not keep a copy of what it types.</p>
     <h2>Your dictation audio</h2>
     <p>To turn speech into text, the audio of your dictation is sent over an encrypted connection to our speech recognition service (the Whisper model, run by Groq). USGScribe does not store the audio or the text. Avoid saying details you do not want processed, such as a patient’s phone number, while dictating.</p>
+    <h2>Structure report (AI)</h2>
+    <p>The web app has an optional Structure button. Only when you press it, the text of the report body is sent over an encrypted connection to Anthropic’s Claude model, which moves your dictation into the right lines and drafts the impression. The patient details at the top of the report (name, age, sex, ID and referring doctor) are not sent, so avoid dictating them into the report body. USGScribe does not store the text, and under Anthropic’s API terms it is not used to train their models by default. Nothing changes in your report until you review the result and press Apply.</p>
     <h2>Settings</h2>
     <p>Your letterhead, phrases and preferences are stored in your browser or on your computer.</p>
   </div>
@@ -285,7 +287,7 @@ function privacy(): string {
   return page({
     path: "/privacy",
     title: "Privacy | USGScribe",
-    description: "How USGScribe handles patient reports and dictation audio.",
+    description: "How USGScribe handles patient reports, dictation audio and AI structuring.",
     body,
   });
 }
