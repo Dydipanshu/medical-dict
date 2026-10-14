@@ -99,7 +99,8 @@ On first launch the settings window opens. Paste in a Groq key, or a deployed we
   filling a `__` blank, print to A4 PDF, .docx export, and mobile layout.
 - Desktop: the Windows build was run against real MS Word 365. Three dictated segments were pasted
   in order with correct paragraphs, and the user's clipboard was restored afterwards.
-- Not yet tested: real Groq transcription (needs a key), the Mac build (needs a Mac).
+- Transcription: real end-to-end runs through Groq's Whisper (`whisper-large-v3-turbo`) with a live key.
+- Not yet tested: the Mac build (needs a Mac).
 
 ## Next ideas
 
